@@ -1,0 +1,14 @@
+# Template testing - ignore test projects
+test_app/
+tmp_test/
+*.tmp
+
+# OS files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Ruby version managers
+.ruby-version
+.rvmrc
