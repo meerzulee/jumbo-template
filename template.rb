@@ -227,6 +227,67 @@ def setup_seeds
   say '  • db/seeds/production.rb'
 end
 
+def configure_development_environment
+  say 'Configuring development environment...', :blue
+
+  inject_into_file 'config/environments/development.rb', before: /^end\n\z/ do
+    <<-RUBY
+
+  config.hosts.clear
+  config.action_mailer.delivery_method = :letter_opener
+  config.action_mailer.perform_deliveries = true
+    RUBY
+  end
+
+  say 'Development environment configured', :green
+end
+
+def configure_production_environment
+  say 'Configuring production environment...', :blue
+
+  inject_into_file 'config/environments/production.rb', before: /^end\n\z/ do
+    <<-RUBY
+
+  config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
+  config.ssl_options = { redirect: { exclude: ->(request) { request.path == "/up" } } }
+  config.assume_ssl = true
+  config.force_ssl = true
+    RUBY
+  end
+
+  say 'Production environment configured', :green
+end
+
+def create_staging_environment
+  say 'Creating staging environment...', :blue
+
+  # Copy production.rb to staging.rb
+  run 'cp config/environments/production.rb config/environments/staging.rb'
+
+  # Replace 'production' with 'staging' in the file
+  gsub_file 'config/environments/staging.rb', /Rails\.application\.configure do.*?\n/, <<~RUBY
+    # Staging environment (copy of production)
+    Rails.application.configure do
+  RUBY
+
+  say 'Staging environment created (copy of production)', :green
+end
+
+def configure_application
+  say 'Configuring application with UUID primary keys...', :blue
+
+  inject_into_file 'config/application.rb', after: "class Application < Rails::Application\n" do
+    <<-RUBY
+    config.generators do |g|
+      g.orm :active_record, primary_key_type: :uuid
+    end
+
+    RUBY
+  end
+
+  say 'Application configured with UUID primary keys', :green
+end
+
 def setup_credentials
   say 'Setting up environment-specific credentials...', :blue
 
@@ -286,6 +347,10 @@ def main
     setup_database
     setup_multi_db_migrations
     setup_seeds
+    configure_application
+    configure_development_environment
+    configure_production_environment
+    create_staging_environment
     setup_credentials
 
     say

@@ -40,6 +40,19 @@ This template is designed to work with:
 
 ### Configuration
 - **Procfile.dev** - Set up to run both Rails server and Vite dev server simultaneously
+- **Multi-database setup** - Configured for primary, cache, queue, and cable databases
+- **Environment-specific credentials** - Separate encrypted credentials for development, staging, and production
+- **Environment-specific seeds** - Organized seed files per environment
+
+## Development Tips
+
+### Testing Solid Cache in Development
+
+If you want to test Solid Cache in the development environment, add this to `config/environments/development.rb`:
+
+```ruby
+config.cache_store = :solid_cache_store
+```
 
 ## Development
 
