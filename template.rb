@@ -7,6 +7,18 @@ def add_gems
   # Inertia.js for building modern single-page apps
   gem 'inertia_rails', '~> 3.0'
 
+  # Trailblazer for business logic organization
+  gem 'trailblazer-rails'
+
+  # Local time conversion in the browser
+  gem 'local_time'
+
+  # Authentication
+  gem 'authentication-zero'
+
+  # JavaScript routes for frontend
+  gem 'js-routes'
+
   gem_group :development do
     # Quick PostgreSQL database reset
     gem 'pgreset'
@@ -16,12 +28,43 @@ def add_gems
 
     # Preview emails in browser
     gem 'letter_opener'
+
+    # Ruby language server for IDE support
+    gem 'solargraph'
+    gem 'solargraph-rails'
+
+    # Ruby type signatures
+    gem 'rbs'
+
+    # Ruby code linter and formatter
+    gem 'rubocop'
+
+    # Database migration safety checks
+    gem 'good_migrations'
   end
 end
 
 def setup_inertia
   say 'Setting up Inertia.js with React, TypeScript, and Tailwind...', :blue
   rails_command 'generate inertia:install --framework=react --typescript --package-manager=bun --tailwind --vite --verbose --example-page --force'
+end
+
+def setup_annotaterb
+  say 'Installing annotaterb...', :blue
+  rails_command 'generate annotate_rb:install'
+  say 'Annotaterb installed', :green
+end
+
+def ensure_bun_package_manager
+  say 'Ensuring bun is used as package manager...', :blue
+
+  # Remove npm artifacts
+  remove_file 'package-lock.json' if File.exist?('package-lock.json')
+
+  # Reinstall with bun
+  run 'bun install'
+
+  say 'Bun package manager configured', :green
 end
 
 def setup_procfile
@@ -60,6 +103,43 @@ def copy_config_files
   copy_file File.join(TEMPLATE_ROOT, 'config/cache.yml'), 'config/cache.yml', force: true
   copy_file File.join(TEMPLATE_ROOT, 'config/queue.yml'), 'config/queue.yml', force: true
   copy_file File.join(TEMPLATE_ROOT, 'config/recurring.yml'), 'config/recurring.yml', force: true
+end
+
+def setup_deploy_configs
+  say 'Setting up Kamal deploy configurations...', :blue
+
+  # Get the app name
+  app_name_value = app_const_base.underscore
+  app_name_hyphen = app_name_value.gsub('_', '-')
+
+  # Copy and replace APP_NAME in deploy files
+  copy_file File.join(TEMPLATE_ROOT, 'config/deploy.yml'), 'config/deploy.yml', force: true
+  gsub_file 'config/deploy.yml', 'APP_NAME', app_name_hyphen
+
+  copy_file File.join(TEMPLATE_ROOT, 'config/deploy.staging.yml'), 'config/deploy.staging.yml', force: true
+  gsub_file 'config/deploy.staging.yml', 'APP_NAME', app_name_value
+
+  copy_file File.join(TEMPLATE_ROOT, 'config/deploy.production.yml'), 'config/deploy.production.yml', force: true
+  gsub_file 'config/deploy.production.yml', 'APP_NAME', app_name_value
+
+  say 'Kamal deploy configurations created with app name: ' + app_name_hyphen, :green
+end
+
+def setup_kamal_secrets
+  say 'Setting up Kamal secrets...', :blue
+
+  # Remove the default secrets file if it exists
+  remove_file '.kamal/secrets' if File.exist?('.kamal/secrets')
+
+  # Copy the environment-specific secrets files
+  copy_file File.join(TEMPLATE_ROOT, '.kamal/secrets-common'), '.kamal/secrets-common', force: true
+  copy_file File.join(TEMPLATE_ROOT, '.kamal/secrets.staging'), '.kamal/secrets.staging', force: true
+  copy_file File.join(TEMPLATE_ROOT, '.kamal/secrets.production'), '.kamal/secrets.production', force: true
+
+  say 'Kamal secrets configured:', :green
+  say '  • .kamal/secrets-common (common environment variables)'
+  say '  • .kamal/secrets.staging (staging RAILS_MASTER_KEY)'
+  say '  • .kamal/secrets.production (production RAILS_MASTER_KEY)'
 end
 
 def setup_zellij
@@ -338,10 +418,13 @@ def main
 
   after_bundle do
     setup_inertia
+    ensure_bun_package_manager
     setup_procfile
     copy_rubocop_config
     copy_env_example
     copy_config_files
+    setup_deploy_configs
+    setup_kamal_secrets
     setup_zellij
     setup_bin_scripts
     setup_database
@@ -352,6 +435,7 @@ def main
     configure_production_environment
     create_staging_environment
     setup_credentials
+    setup_annotaterb
 
     say
     say 'Jumbo template successfully applied!', :green
