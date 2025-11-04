@@ -55,10 +55,11 @@ def copy_env_example
 end
 
 def copy_config_files
-  say 'Copying cable, cache, and queue configurations...', :blue
+  say 'Copying cable, cache, queue, and recurring configurations...', :blue
   copy_file File.join(TEMPLATE_ROOT, 'config/cable.yml'), 'config/cable.yml', force: true
   copy_file File.join(TEMPLATE_ROOT, 'config/cache.yml'), 'config/cache.yml', force: true
   copy_file File.join(TEMPLATE_ROOT, 'config/queue.yml'), 'config/queue.yml', force: true
+  copy_file File.join(TEMPLATE_ROOT, 'config/recurring.yml'), 'config/recurring.yml', force: true
 end
 
 def setup_zellij
