@@ -1,9 +1,7 @@
 # Jumbo Rails Template
 # Usage: rails new {project_name} --database=postgresql --skip-javascript -m=template.rb
 
-def source_paths
-  [__dir__]
-end
+TEMPLATE_ROOT = __dir__
 
 def add_gems
   # Inertia.js for building modern single-page apps
@@ -48,20 +46,65 @@ end
 
 def copy_rubocop_config
   say 'Copying RuboCop configuration...', :blue
-  copy_file '.rubocop.yml', '.rubocop.yml', force: true
+  copy_file File.join(TEMPLATE_ROOT, '.rubocop.yml'), '.rubocop.yml', force: true
 end
 
 def setup_zellij
   say 'Setting up Zellij configuration...', :blue
-  directory '.zellij', '.zellij'
-  copy_file 'bin/ze', 'bin/ze', force: true
+  directory File.join(TEMPLATE_ROOT, '.zellij'), '.zellij'
+  copy_file File.join(TEMPLATE_ROOT, 'bin/ze'), 'bin/ze', force: true
   chmod 'bin/ze', 0755
 end
 
 def setup_bin_scripts
   say 'Setting up custom bin scripts...', :blue
-  copy_file 'bin/db-reset', 'bin/db-reset', force: true
+  copy_file File.join(TEMPLATE_ROOT, 'bin/db-reset'), 'bin/db-reset', force: true
   chmod 'bin/db-reset', 0755
+end
+
+def setup_credentials
+  say 'Setting up environment-specific credentials...', :blue
+
+  # Create credentials directory
+  empty_directory 'config/credentials'
+
+  # Move default credentials to development
+  if File.exist?('config/master.key') && File.exist?('config/credentials.yml.enc')
+    run 'mv config/master.key config/credentials/development.key'
+    run 'mv config/credentials.yml.enc config/credentials/development.yml.enc'
+    say 'Moved default credentials to development environment', :green
+  else
+    # Create development credentials if they don't exist
+    secret = run("bin/rails secret", capture: true).strip
+    credentials_content = "secret_key_base: #{secret}\n"
+    tmp_file = "tmp_credentials_development.yml"
+    File.write(tmp_file, credentials_content)
+    run "EDITOR='cat #{tmp_file} >' bin/rails credentials:edit --environment development > /dev/null 2>&1", capture: true
+    remove_file tmp_file
+  end
+
+  # Create staging and production credentials with secret_key_base
+  %w[staging production].each do |env|
+    # Generate a secret key
+    secret = run("bin/rails secret", capture: true).strip
+
+    # Create a temporary file with the credentials content
+    credentials_content = "secret_key_base: #{secret}\n"
+    tmp_file = "tmp_credentials_#{env}.yml"
+    File.write(tmp_file, credentials_content)
+
+    # Use the content file to initialize credentials (suppress all output)
+    run "EDITOR='cat #{tmp_file} >' bin/rails credentials:edit --environment #{env} > /dev/null 2>&1", capture: true
+
+    # Clean up temp file
+    remove_file tmp_file
+  end
+
+  say 'Environment-specific credentials created:', :green
+  say '  • config/credentials/development.key + development.yml.enc'
+  say '  • config/credentials/staging.key + staging.yml.enc'
+  say '  • config/credentials/production.key + production.yml.enc'
+  say '  (All include secret_key_base)'
 end
 
 def main
@@ -73,6 +116,7 @@ def main
     copy_rubocop_config
     setup_zellij
     setup_bin_scripts
+    setup_credentials
 
     say
     say 'Jumbo template successfully applied!', :green
