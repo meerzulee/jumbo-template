@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if ! command -v zellij >/dev/null 2>&1; then
+  echo "Error: zellij is not installed or not in PATH." >&2
+  exit 127
+fi
+
+# Project root/name
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
+PROJECT_ROOT="$(cd -- "$SCRIPT_DIR/.." &>/dev/null && pwd)"
+PROJECT_NAME="$(basename "$PROJECT_ROOT")"
+
+# bin/zellij [session_name] [layout_file]
+SESSION_NAME="${1:-$PROJECT_NAME}"
+DEFAULT_LAYOUT="$PROJECT_ROOT/.zellij/layout.kdl"
+LAYOUT_PATH="${2:-$DEFAULT_LAYOUT}"
+
+# Resolve relative layout from project root
+[[ "$LAYOUT_PATH" = /* ]] || LAYOUT_PATH="$PROJECT_ROOT/$LAYOUT_PATH"
+
+# Autocreate a simple default layout if missing at default path
+if [[ "$LAYOUT_PATH" == "$DEFAULT_LAYOUT" ]] && [[ ! -f "$LAYOUT_PATH" ]]; then
+  mkdir -p "$PROJECT_ROOT/.zellij"
+  cat >"$LAYOUT_PATH" <<'KDL'
+layout {
+  tab name="editor" {
+    pane {
+      command "bash"
+      args "-lc" "${EDITOR:-nvim} ."
+    }
+  }
+  tab name="server" {
+    pane
+  }
+}
+KDL
+  echo "Created $LAYOUT_PATH" >&2
+fi
+
+# Already in a Zellij session? Just open the layout as new tab(s) in it.
+if [[ "${ZELLIJ:-}" != "" ]]; then
+  exec zellij --layout "$LAYOUT_PATH" # adds new tab(s) to current session
+fi
+
+# Collect current sessions
+mapfile -t SESSIONS < <(zellij list-sessions 2>/dev/null || true)
+
+# If exact match exists, attach
+if printf '%s\n' "${SESSIONS[@]}" | grep -Fxq "$SESSION_NAME"; then
+  exec zellij attach "$SESSION_NAME"
+fi
+
+# If a single prefixed match like "<name>-something" exists, attach to it
+PREFIX_MATCHES=()
+for s in "${SESSIONS[@]}"; do
+  [[ $s == "$SESSION_NAME"-* || $s == "$SESSION_NAME"_* ]] && PREFIX_MATCHES+=("$s")
+done
+
+if [[ ${#PREFIX_MATCHES[@]} -eq 1 ]]; then
+  exec zellij attach "${PREFIX_MATCHES[0]}"arrgs
+fi
+
+# Otherwise: create new named session with the layout.
+# Place --layout before 'attach' so it's treated as a global flag.
+zellij --layout "$LAYOUT_PATH" attach --create "$SESSION_NAME" 2>/dev/null ||
+  zellij --layout "$LAYOUT_PATH" attach -c "$SESSION_NAME" 2>/dev/null ||
+  exec zellij --new-session-with-layout "$LAYOUT_PATH"
+

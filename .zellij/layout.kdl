@@ -1,0 +1,49 @@
+
+
+layout {
+  // Put the tab-bar on top and status-bar on bottom for every tab
+  default_tab_template {
+    pane size=1 borderless=true {
+      plugin location="zellij:tab-bar"
+    }
+    children
+    pane size=1 borderless=true {
+      plugin location="zellij:status-bar"
+    }
+  }
+
+  tab name="editor" {
+    pane {
+      name "nvim"
+      command "nvim"
+      args "."
+    }
+  }
+
+  tab name="server" {
+    pane split_direction="vertical"  {
+      pane {
+        name "console"
+        command "bin/rails"
+        args "console"
+      }
+      pane {
+        name "dev server"
+        command "bin/dev"
+      }
+    }
+  }
+
+  tab name="lazygit" {
+    pane command="lazygit"
+  }
+
+  // tab name="proxy" {
+  //   pane {
+  //     name "cloudflared"
+  //     command "cloudflared"
+  //     args "tunnel" "--config" ".cloudflared/config.yml" "run"
+  //   }
+  // }
+  //
+}
