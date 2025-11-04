@@ -1,0 +1,41 @@
+env:
+  clear:
+    RAILS_ENV: production
+
+servers:
+  web:
+    - PRODUCTION_SERVER_IP # CHANGE THIS to your production server IP
+
+proxy:
+  ssl: true
+  host: example.com # CHANGE THIS to your production domain
+  # forward_headers: true
+
+ssh:
+  user: deploy # CHANGE THIS to your SSH user
+  port: 22 # CHANGE THIS if using custom SSH port
+
+accessories:
+  postgres:
+    image: postgres:16
+    host: PRODUCTION_SERVER_IP # CHANGE THIS to your production server IP
+    port: "127.0.0.1:5432:5432"
+    env:
+      clear:
+        POSTGRES_DB: APP_NAME_production
+      secret:
+        - POSTGRES_PASSWORD
+    directories:
+      - APP_NAME_production_postgres_data:/var/lib/postgresql/data
+
+  postgres-trifecta:
+    image: postgres:16
+    host: PRODUCTION_SERVER_IP # CHANGE THIS to your production server IP
+    port: "127.0.0.1:5433:5432"
+    env:
+      clear:
+        POSTGRES_DB: APP_NAME_trifecta
+      secret:
+        - POSTGRES_PASSWORD
+    directories:
+      - APP_NAME_production_postgres_trifecta_data:/var/lib/postgresql/data

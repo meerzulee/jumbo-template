@@ -1,0 +1,35 @@
+service: APP_NAME
+
+image: REGISTRY_USERNAME/APP_NAME
+
+registry:
+  server: <%= ENV["KAMAL_REGISTRY_SERVER"] %>
+  username:
+    - KAMAL_REGISTRY_USERNAME
+  password:
+    - KAMAL_REGISTRY_PASSWORD
+
+env:
+  secret:
+    - RAILS_MASTER_KEY
+    - POSTGRES_PASSWORD
+
+  clear:
+    SOLID_QUEUE_IN_PUMA: true
+    DB_HOST: APP_NAME-postgres
+
+aliases:
+  console: app exec --interactive --reuse "bin/rails console"
+  shell: app exec --interactive --reuse "bash"
+  logs: app logs -f
+  dbc: app exec --interactive --reuse "bin/rails dbconsole"
+  routes: app exec --interactive --reuse "bin/rails routes"
+
+volumes:
+  - "APP_NAME_storage:/rails/storage"
+
+asset_path: /rails/public/assets
+
+builder:
+  arch: amd64
+  context: .
