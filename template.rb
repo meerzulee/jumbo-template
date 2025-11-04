@@ -1,119 +1,71 @@
-# Rails 8 Application Template
-# Usage: rails new my_app --template=https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/template.rb
+# Jumbo Rails Template
+# Usage: rails new {project_name} --database=postgresql --skip-javascript -m=template.rb
 
 def add_gems
-  # General gems
-  gem "trailblazer-rails"
-  gem "local_time"
-  gem "honeybadger", "~> 6.0"
-  gem "authentication-zero", "~> 4.0"
-  gem "rest-client", "~> 2.1"
+  # Inertia.js for building modern single-page apps
+  gem 'inertia_rails', '~> 3.0'
 
-  # Development and test gems
-  gem_group :development, :test do
-    gem "pgreset"
-  end
-
-  # Development only gems
   gem_group :development do
-    gem "annotaterb"
-    gem "letter_opener"
-    gem "solargraph"
-    gem "solargraph-rails"
-    gem "rbs"
-    gem "rubocop"
-    gem "good_migrations"
+    # Quick PostgreSQL database reset
+    gem 'pgreset'
+
+    # Annotate models with schema information
+    gem 'annotaterb'
+
+    # Preview emails in browser
+    gem 'letter_opener'
   end
 end
 
-def setup_initializers
-  # Create custom initializers
-  # You can use your generator or create files directly
-
-  # Example: Create a custom initializer
-  # initializer 'custom_config.rb', <<~RUBY
-  #   Rails.application.config.custom_setting = true
-  # RUBY
+def setup_inertia
+  say 'Setting up Inertia.js with React, TypeScript, and Tailwind...', :blue
+  rails_command 'generate inertia:install --framework=react --typescript --package-manager=bun --tailwind --vite --verbose --example-page --force'
 end
 
-def setup_generators
-  # Configure Rails generators
-  initializer 'generators.rb', <<~RUBY
-    Rails.application.config.generators do |g|
-      g.test_framework :test_unit, fixture: false
-      g.stylesheets false
-      g.javascripts false
-      g.helper false
+def setup_procfile
+  procfile_content = <<~PROCFILE
+    web: bin/rails s
+    vite: bin/vite dev
+  PROCFILE
+
+  if File.exist?('Procfile.dev')
+    current_content = File.read('Procfile.dev')
+    if current_content != procfile_content
+      say 'Updating Procfile.dev...', :yellow
+      File.write('Procfile.dev', procfile_content)
+    else
+      say 'Procfile.dev already configured correctly', :green
     end
-  RUBY
+  else
+    say 'Creating Procfile.dev...', :blue
+    File.write('Procfile.dev', procfile_content)
+  end
 end
 
-def add_routes
-  # Add custom routes
-  # route "root 'pages#home'"
+def main
+  add_gems
+
+  after_bundle do
+    setup_inertia
+    setup_procfile
+
+    say
+    say 'Jumbo template successfully applied!', :green
+    say
+    say 'Gems installed:', :blue
+    say '  • inertia_rails (3.x) - Modern SPA framework'
+    say '  • pgreset - Quick database reset tool'
+    say '  • annotaterb - Model annotations'
+    say '  • letter_opener - Email previews'
+    say
+    say 'Inertia.js configured with:', :blue
+    say '  • React + TypeScript'
+    say '  • Tailwind CSS'
+    say '  • Vite bundler (via Inertia installer)'
+    say '  • Bun package manager'
+    say '  • Example page included'
+    say
+  end
 end
 
-def setup_database
-  # Database configuration changes if needed
-  # rails_command "db:create"
-  # rails_command "db:migrate"
-end
-
-def setup_frontend
-  # Frontend setup (Tailwind, etc.)
-  # rails_command "tailwindcss:install" if yes?("Install Tailwind CSS?")
-end
-
-def setup_authentication
-  # Authentication setup
-  # generate "devise:install" if yes?("Install Devise for authentication?")
-end
-
-def setup_git
-  # Git setup
-  git :init
-  git add: "."
-  git commit: "-m 'Initial commit with custom template'"
-end
-
-def create_custom_files
-  # Create any custom files or directories
-  # directory "app/services"
-  # create_file "app/services/.keep"
-end
-
-# Add gems to Gemfile (before bundle install)
-add_gems
-
-# Main execution flow (runs after bundle install)
-after_bundle do
-  say "Setting up initializers...", :green
-  setup_initializers
-  setup_generators
-
-  say "Configuring routes...", :green
-  add_routes
-
-  say "Setting up database...", :green
-  setup_database
-
-  say "Setting up frontend...", :green
-  setup_frontend if yes?("Would you like to configure frontend?")
-
-  say "Setting up authentication...", :green
-  setup_authentication if yes?("Would you like to set up authentication?")
-
-  say "Creating custom files and directories...", :green
-  create_custom_files
-
-  say "Setting up Git repository...", :green
-  setup_git if yes?("Initialize Git repository?")
-
-  say "=" * 60, :green
-  say "Template applied successfully!", :green
-  say "=" * 60, :green
-  say "Next steps:", :yellow
-  say "  1. cd #{app_name}", :yellow
-  say "  2. rails server", :yellow
-  say "=" * 60, :green
-end
+main

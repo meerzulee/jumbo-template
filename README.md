@@ -1,71 +1,69 @@
-# MRZ Rails 8 Template
+# Jumbo Rails Template
 
-A comprehensive Rails 8 application template to quickly scaffold new projects with your preferred configuration.
+A custom Rails application template for quickly bootstrapping new Rails projects with PostgreSQL and your preferred configuration.
 
 ## Usage
 
-### Local Usage
+### Creating a new Rails app with this template
+
 ```bash
-rails new my_app --template=/path/to/mrz-template/template.rb
+rails new {project_name} --database=postgresql --skip-javascript -m=template.rb
 ```
 
-### Remote Usage (GitHub)
+Or using a remote URL:
+
 ```bash
-rails new my_app --template=https://raw.githubusercontent.com/YOUR_USERNAME/mrz-template/main/template.rb
+rails new {project_name} --database=postgresql --skip-javascript -m=https://raw.githubusercontent.com/username/jumbo-template/master/template.rb
 ```
 
-### With Specific Options
+### Template Configuration
+
+This template is designed to work with:
+- **PostgreSQL** as the database
+- **No JavaScript** setup (--skip-javascript flag)
+- **Inertia.js** for modern SPA development with Rails
+
+## What's Included
+
+### Gems
+- **inertia_rails** (3.x) - Build modern single-page apps with Rails backend
+- **pgreset** - Quick PostgreSQL database reset tool
+- **annotaterb** - Automatically annotate models with schema information
+- **letter_opener** - Preview emails in browser during development
+
+### Frontend Stack (via Inertia installer)
+- **React** with **TypeScript**
+- **Tailwind CSS** for styling
+- **Vite** for fast frontend bundling
+- **Bun** as the package manager
+- Example page to get started quickly
+
+### Configuration
+- **Procfile.dev** - Set up to run both Rails server and Vite dev server simultaneously
+
+## Development
+
+To work on this template:
+
+1. Clone this repository
+2. Make your changes to `template.rb`
+3. Test by creating a new Rails app with the template
+4. Commit and push your changes
+
+## Testing the Template
+
 ```bash
-# PostgreSQL database
-rails new my_app --database=postgresql --template=https://raw.githubusercontent.com/YOUR_USERNAME/mrz-template/main/template.rb
+# Create a test Rails app
+rails new test_app --database=postgresql --skip-javascript -m=template.rb
 
-# API only
-rails new my_app --api --template=https://raw.githubusercontent.com/YOUR_USERNAME/mrz-template/main/template.rb
-```
-
-## What This Template Does
-
-The template automatically sets up:
-
-1. **Gems**: Adds commonly used gems to your Gemfile
-2. **Initializers**: Sets up custom configuration files
-3. **Generators**: Configures Rails generators with sensible defaults
-4. **Routes**: Adds custom routes
-5. **Database**: Configures database settings
-6. **Frontend**: Optionally sets up frontend frameworks
-7. **Authentication**: Optionally sets up authentication
-8. **Git**: Initializes a Git repository with initial commit
-
-## Customization
-
-Edit `template.rb` to customize the template for your needs.
-
-## Testing Your Template
-
-Test locally before deploying:
-
-```bash
-cd /tmp
-rails new test_app --template=/path/to/mrz-template/template.rb
-cd test_app
-rails server
+# Clean up after testing
+rm -rf test_app
 ```
 
 ## Contributing
 
-Feel free to fork and customize this template for your own use!
+This is a personal template, but feel free to fork and customize for your own needs.
 
-## Rails Template DSL Quick Reference
+## License
 
-- `gem 'gem_name'` - Add a gem to Gemfile
-- `gem_group :development, :test do ... end` - Add gems to specific groups
-- `run 'command'` - Run arbitrary shell commands
-- `rails_command 'db:migrate'` - Run Rails commands
-- `generate 'model User'` - Run Rails generators
-- `initializer 'filename.rb', "code"` - Create initializer
-- `route "root 'pages#home'"` - Add routes
-- `after_bundle { ... }` - Execute code after bundle install
-- `git :init` - Run git commands
-- `ask 'Question?'` - Prompt user for input
-- `yes? 'Question?'` - Ask yes/no questions
-- `say 'message', :color` - Print colored messages
+MIT
