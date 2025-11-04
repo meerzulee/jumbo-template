@@ -49,6 +49,18 @@ def copy_rubocop_config
   copy_file File.join(TEMPLATE_ROOT, '.rubocop.yml'), '.rubocop.yml', force: true
 end
 
+def copy_env_example
+  say 'Copying .env.example...', :blue
+  copy_file File.join(TEMPLATE_ROOT, '.env.example'), '.env.example', force: true
+end
+
+def copy_config_files
+  say 'Copying cable, cache, and queue configurations...', :blue
+  copy_file File.join(TEMPLATE_ROOT, 'config/cable.yml'), 'config/cable.yml', force: true
+  copy_file File.join(TEMPLATE_ROOT, 'config/cache.yml'), 'config/cache.yml', force: true
+  copy_file File.join(TEMPLATE_ROOT, 'config/queue.yml'), 'config/queue.yml', force: true
+end
+
 def setup_zellij
   say 'Setting up Zellij configuration...', :blue
   directory File.join(TEMPLATE_ROOT, '.zellij'), '.zellij'
@@ -60,6 +72,158 @@ def setup_bin_scripts
   say 'Setting up custom bin scripts...', :blue
   copy_file File.join(TEMPLATE_ROOT, 'bin/db-reset'), 'bin/db-reset', force: true
   chmod 'bin/db-reset', 0755
+end
+
+def setup_database
+  say 'Setting up database configuration...', :blue
+
+  # Get the app name and create proper formats
+  app_name_value = app_const_base.underscore
+  db_name = app_name_value.gsub('/', '_')
+  host_name = db_name.gsub('_', '-')
+
+  database_yml = <<~DATABASE
+    default: &default
+      adapter: postgresql
+      encoding: unicode
+      # For details on connection pooling, see Rails configuration guide
+      # https://guides.rubyonrails.org/configuring.html#database-pooling
+      pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+
+    development:
+      primary: &primary_development
+        <<: *default
+        database: #{db_name}_development
+        host: localhost
+        username: postgres
+        password: postgres
+      cache:
+        <<: *primary_development
+        database: #{db_name}_development_cache
+        migrations_paths: db/cache_migrate
+      queue:
+        <<: *primary_development
+        database: #{db_name}_development_queue
+        migrations_paths: db/queue_migrate
+      cable:
+        <<: *primary_development
+        database: #{db_name}_development_cable
+        migrations_paths: db/cable_migrate
+
+    test:
+      <<: *default
+      database: #{db_name}_test
+      host: localhost
+      username: postgres
+      password: postgres
+
+    staging:
+      primary: &primary_staging
+        <<: *default
+        host: #{host_name}-postgres
+        database: #{db_name}_staging
+        username: postgres
+        password: <%= ENV["POSTGRES_PASSWORD"] %>
+      trifecta: &trifecta_staging
+        <<: *default
+        host: #{host_name}-postgres-trifecta
+        port: 5432
+        username: postgres
+        password: <%= ENV["POSTGRES_PASSWORD"] %>
+      cache:
+        <<: *trifecta_staging
+        database: #{db_name}_staging_cache
+        migrations_paths: db/cache_migrate
+      queue:
+        <<: *trifecta_staging
+        database: #{db_name}_staging_queue
+        migrations_paths: db/queue_migrate
+      cable:
+        <<: *trifecta_staging
+        database: #{db_name}_staging_cable
+        migrations_paths: db/cable_migrate
+
+    production:
+      primary: &primary_production
+        <<: *default
+        host: #{host_name}-postgres
+        database: #{db_name}_production
+        username: postgres
+        password: <%= ENV["POSTGRES_PASSWORD"] %>
+      trifecta: &trifecta_production
+        <<: *default
+        host: #{host_name}-postgres-trifecta
+        port: 5432
+        username: postgres
+        password: <%= ENV["POSTGRES_PASSWORD"] %>
+      cache:
+        <<: *trifecta_production
+        database: #{db_name}_production_cache
+        migrations_paths: db/cache_migrate
+      queue:
+        <<: *trifecta_production
+        database: #{db_name}_production_queue
+        migrations_paths: db/queue_migrate
+      cable:
+        <<: *trifecta_production
+        database: #{db_name}_production_cable
+        migrations_paths: db/cable_migrate
+  DATABASE
+
+  remove_file 'config/database.yml'
+  create_file 'config/database.yml', database_yml
+  say 'Database configuration created with multi-database support', :green
+end
+
+def setup_multi_db_migrations
+  say 'Setting up multi-database migrations...', :blue
+
+  # Copy migration directories for cable, cache, and queue databases
+  %w[cable_migrate cache_migrate queue_migrate].each do |migrate_dir|
+    directory File.join(TEMPLATE_ROOT, 'db', migrate_dir), "db/#{migrate_dir}"
+  end
+
+  say 'Multi-database migrations created:', :green
+  say '  • db/cable_migrate/'
+  say '  • db/cache_migrate/'
+  say '  • db/queue_migrate/'
+end
+
+def setup_seeds
+  say 'Setting up environment-specific seeds...', :blue
+
+  # Create db/seeds directory
+  empty_directory 'db/seeds'
+
+  # Create main seeds.rb file
+  seeds_content = <<~SEEDS
+    puts "Seeding \#{Rails.env.downcase} environment"
+
+    # load the correct seeds file for our Rails environment
+    load(Rails.root.join('db', 'seeds', "\#{Rails.env.downcase}.rb"))
+  SEEDS
+
+  remove_file 'db/seeds.rb'
+  create_file 'db/seeds.rb', seeds_content
+
+  # Create environment-specific seed files
+  %w[development test staging production].each do |env|
+    seed_file_content = <<~SEED_FILE
+      # #{env.capitalize} environment seeds
+      puts "Loading #{env} seeds..."
+
+      # Add your #{env}-specific seed data here
+    SEED_FILE
+
+    create_file "db/seeds/#{env}.rb", seed_file_content
+  end
+
+  say 'Environment-specific seeds created:', :green
+  say '  • db/seeds.rb (main loader)'
+  say '  • db/seeds/development.rb'
+  say '  • db/seeds/test.rb'
+  say '  • db/seeds/staging.rb'
+  say '  • db/seeds/production.rb'
 end
 
 def setup_credentials
@@ -114,8 +278,13 @@ def main
     setup_inertia
     setup_procfile
     copy_rubocop_config
+    copy_env_example
+    copy_config_files
     setup_zellij
     setup_bin_scripts
+    setup_database
+    setup_multi_db_migrations
+    setup_seeds
     setup_credentials
 
     say
