@@ -28,7 +28,7 @@ aliases:
 volumes:
   - "APP_NAME_storage:/rails/storage"
 
-asset_path: /rails/public/assets
+asset_path: /rails/public
 
 builder:
   arch: amd64
