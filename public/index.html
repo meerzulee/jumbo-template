@@ -1,495 +1,542 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Jumbo Rails Template</title>
-  <meta name="description" content="Production-ready Rails 8.1 with Inertia.js, React, TypeScript, Tailwind CSS, and Kamal deploy in one command.">
+<!doctype html>
+<html lang="en" prefix="og: https://ogp.me/ns#">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Jumbo Rails Template</title>
+    <meta
+      name="description"
+      content="Production-ready Rails 8.1 with Inertia.js, React, TypeScript, Tailwind CSS, and Kamal deploy in one command."
+    />
 
-  <!-- Open Graph / Facebook -->
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://rails.mrz.sh/">
-  <meta property="og:title" content="Jumbo - Rails 8.1 Template">
-  <meta property="og:description" content="Production-ready Rails 8.1 with Inertia.js, React, TypeScript, Tailwind CSS, and Kamal deploy in one command.">
-  <meta property="og:image" content="https://rails.mrz.sh/og-image.jpg">
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://rails.mrz.sh" />
+    <meta property="og:title" content="Jumbo - Rails 8.1 Template" />
+    <meta
+      property="og:description"
+      content="Production-ready Rails 8.1 with Inertia.js, React, TypeScript, Tailwind CSS, and Kamal deploy in one command."
+    />
+    <meta property="og:image" content="https://rails.mrz.sh/og-image.jpg" />
 
-  <!-- Twitter -->
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:url" content="https://rails.mrz.sh/">
-  <meta name="twitter:title" content="Jumbo - Rails 8.1 Template">
-  <meta name="twitter:description" content="Production-ready Rails 8.1 with Inertia.js, React, TypeScript, Tailwind CSS, and Kamal deploy in one command.">
-  <meta name="twitter:image" content="https://rails.mrz.sh/og-image.jpg">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Outfit:wght@300;600;800&display=swap" rel="stylesheet">
-  <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96">
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <link rel="shortcut icon" href="/favicon.ico">
-  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-  <link rel="manifest" href="/site.webmanifest">
-  <meta name="theme-color" content="#050505">
-  <style>
-    :root {
-      --bg-deep: #050505;
-      --bg-surface: #0a0a0a;
-      --terminal-green: #00ff9f;
-      --terminal-green-dim: #00ff9f22;
-      --terminal-amber: #ffb800;
-      --text-primary: #e8e8e8;
-      --text-muted: #666;
-      --border: #1a1a1a;
-    }
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://rails.mrz.sh/" />
+    <meta name="twitter:title" content="Jumbo - Rails 8.1 Template" />
+    <meta
+      name="twitter:description"
+      content="Production-ready Rails 8.1 with Inertia.js, React, TypeScript, Tailwind CSS, and Kamal deploy in one command."
+    />
+    <meta name="twitter:image" content="https://rails.mrz.sh/og-image.jpg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Outfit:wght@300;600;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta name="theme-color" content="#050505" />
+    <style>
+      :root {
+        --bg-deep: #050505;
+        --bg-surface: #0a0a0a;
+        --terminal-green: #00ff9f;
+        --terminal-green-dim: #00ff9f22;
+        --terminal-amber: #ffb800;
+        --text-primary: #e8e8e8;
+        --text-muted: #666;
+        --border: #1a1a1a;
+      }
 
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-    html {
-      font-size: 16px;
-    }
+      html {
+        font-size: 16px;
+      }
 
-    body {
-      font-family: 'Outfit', sans-serif;
-      background: var(--bg-deep);
-      color: var(--text-primary);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 2rem;
-      position: relative;
-      overflow: hidden;
-    }
+      body {
+        font-family: "Outfit", sans-serif;
+        background: var(--bg-deep);
+        color: var(--text-primary);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        position: relative;
+        overflow: hidden;
+      }
 
-    /* Scanline overlay */
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background: repeating-linear-gradient(
-        0deg,
-        transparent,
-        transparent 2px,
-        rgba(0, 0, 0, 0.15) 2px,
-        rgba(0, 0, 0, 0.15) 4px
-      );
-      pointer-events: none;
-      z-index: 1000;
-    }
+      /* Scanline overlay */
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background: repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 2px,
+          rgba(0, 0, 0, 0.15) 2px,
+          rgba(0, 0, 0, 0.15) 4px
+        );
+        pointer-events: none;
+        z-index: 1000;
+      }
 
-    /* Noise texture */
-    body::after {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-      opacity: 0.03;
-      pointer-events: none;
-      z-index: 999;
-    }
+      /* Noise texture */
+      body::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+        opacity: 0.03;
+        pointer-events: none;
+        z-index: 999;
+      }
 
-    /* Ambient glow */
-    .glow {
-      position: fixed;
-      width: 600px;
-      height: 600px;
-      background: radial-gradient(circle, var(--terminal-green-dim) 0%, transparent 70%);
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      pointer-events: none;
-      animation: pulse 8s ease-in-out infinite;
-    }
+      /* Ambient glow */
+      .glow {
+        position: fixed;
+        width: 600px;
+        height: 600px;
+        background: radial-gradient(
+          circle,
+          var(--terminal-green-dim) 0%,
+          transparent 70%
+        );
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+        animation: pulse 8s ease-in-out infinite;
+      }
 
-    @keyframes pulse {
-      0%, 100% { opacity: 0.3; transform: translate(-50%, -50%) scale(1); }
-      50% { opacity: 0.5; transform: translate(-50%, -50%) scale(1.1); }
-    }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 0.3;
+          transform: translate(-50%, -50%) scale(1);
+        }
+        50% {
+          opacity: 0.5;
+          transform: translate(-50%, -50%) scale(1.1);
+        }
+      }
 
-    .container {
-      position: relative;
-      z-index: 1;
-      text-align: center;
-      max-width: 700px;
-      width: 100%;
-    }
+      .container {
+        position: relative;
+        z-index: 1;
+        text-align: center;
+        max-width: 700px;
+        width: 100%;
+      }
 
-    /* Title */
-    .title {
-      font-size: clamp(3rem, 10vw, 5rem);
-      font-weight: 800;
-      letter-spacing: -0.03em;
-      margin-bottom: 0.5rem;
-      color: var(--text-primary);
-      text-shadow: 0 0 60px var(--terminal-green-dim);
-    }
+      /* Title */
+      .title {
+        font-size: clamp(3rem, 10vw, 5rem);
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        margin-bottom: 0.5rem;
+        color: var(--text-primary);
+        text-shadow: 0 0 60px var(--terminal-green-dim);
+      }
 
-    .title span {
-      color: var(--terminal-green);
-      text-shadow: 0 0 30px var(--terminal-green);
-    }
+      .title span {
+        color: var(--terminal-green);
+        text-shadow: 0 0 30px var(--terminal-green);
+      }
 
-    .subtitle {
-      font-size: 1.1rem;
-      font-weight: 300;
-      color: var(--text-muted);
-      margin-bottom: 2.5rem;
-      letter-spacing: 0.02em;
-    }
+      .subtitle {
+        font-size: 1.1rem;
+        font-weight: 300;
+        color: var(--text-muted);
+        margin-bottom: 2.5rem;
+        letter-spacing: 0.02em;
+      }
 
-    /* Project name input */
-    .name-input-wrapper {
-      margin-bottom: 1.5rem;
-      position: relative;
-      display: inline-block;
-      cursor: default;
-    }
+      /* Project name input */
+      .name-input-wrapper {
+        margin-bottom: 1.5rem;
+        position: relative;
+        display: inline-block;
+        cursor: default;
+      }
 
-    .name-input {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 1.1rem;
-      background: var(--bg-surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 0.75rem 1.25rem;
-      color: var(--terminal-amber);
-      text-align: left;
-      outline: none;
-      width: 200px;
-      transition: all 0.2s;
-      cursor: text;
-    }
+      .name-input {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 1.1rem;
+        background: var(--bg-surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 0.75rem 1.25rem;
+        color: var(--terminal-amber);
+        text-align: left;
+        outline: none;
+        width: 200px;
+        transition: all 0.2s;
+        cursor: text;
+      }
 
-    .name-input:focus {
-      border-color: var(--terminal-amber);
-      box-shadow: 0 0 20px -5px var(--terminal-amber);
-      caret-color: var(--terminal-amber);
-    }
+      .name-input:focus {
+        border-color: var(--terminal-amber);
+        box-shadow: 0 0 20px -5px var(--terminal-amber);
+        caret-color: var(--terminal-amber);
+      }
 
-    .name-input::placeholder {
-      color: var(--text-muted);
-    }
+      .name-input::placeholder {
+        color: var(--text-muted);
+      }
 
-    /* Blinking caret effect */
-    @keyframes blink {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0; }
-    }
+      /* Blinking caret effect */
+      @keyframes blink {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0;
+        }
+      }
 
-    .name-input:placeholder-shown:not(:focus) {
-      caret-color: transparent;
-    }
+      .name-input:placeholder-shown:not(:focus) {
+        caret-color: transparent;
+      }
 
-    .name-input-wrapper::after {
-      content: '';
-      position: absolute;
-      left: 1.25rem;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 2px;
-      height: 1.2em;
-      background: var(--terminal-amber);
-      animation: blink 1s step-end infinite;
-      pointer-events: none;
-    }
+      .name-input-wrapper::after {
+        content: "";
+        position: absolute;
+        left: 1.25rem;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 2px;
+        height: 1.2em;
+        background: var(--terminal-amber);
+        animation: blink 1s step-end infinite;
+        pointer-events: none;
+      }
 
-    .name-input:focus + .name-input-wrapper::after,
-    .name-input:not(:placeholder-shown) ~ .name-input-wrapper::after {
-      display: none;
-    }
+      .name-input:focus + .name-input-wrapper::after,
+      .name-input:not(:placeholder-shown) ~ .name-input-wrapper::after {
+        display: none;
+      }
 
-    .name-input-wrapper:has(.name-input:focus)::after,
-    .name-input-wrapper:has(.name-input:not(:placeholder-shown))::after {
-      display: none;
-    }
+      .name-input-wrapper:has(.name-input:focus)::after,
+      .name-input-wrapper:has(.name-input:not(:placeholder-shown))::after {
+        display: none;
+      }
 
-    /* Terminal boxes */
-    .terminals {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-      margin-bottom: 2.5rem;
-    }
+      /* Terminal boxes */
+      .terminals {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin-bottom: 2.5rem;
+      }
 
-    .terminal {
-      background: var(--bg-surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 1.25rem 1.5rem;
-      cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
-      overflow: hidden;
-      text-align: left;
-    }
-
-    .terminal::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, var(--terminal-green-dim) 0%, transparent 50%);
-      opacity: 0;
-      transition: opacity 0.3s;
-    }
-
-    .terminal:hover {
-      border-color: var(--terminal-green);
-      box-shadow:
-        0 0 0 1px var(--terminal-green),
-        0 0 40px -10px var(--terminal-green),
-        inset 0 0 60px -30px var(--terminal-green-dim);
-    }
-
-    .terminal:hover::before {
-      opacity: 1;
-    }
-
-    .terminal:active {
-      transform: scale(0.995);
-    }
-
-    .terminal-label {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.7rem;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      margin-bottom: 0.5rem;
-      position: relative;
-      z-index: 1;
-    }
-
-    .terminal-command {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.9rem;
-      color: var(--terminal-green);
-      position: relative;
-      z-index: 1;
-      overflow-wrap: break-word;
-      word-break: keep-all;
-      text-shadow: 0 0 10px var(--terminal-green-dim);
-      line-height: 1.6;
-    }
-
-    .terminal-command .highlight {
-      color: var(--terminal-amber);
-    }
-
-    /* Copy feedback */
-    .copy-toast {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%) scale(0.8);
-      background: var(--terminal-green);
-      color: var(--bg-deep);
-      padding: 0.5rem 1rem;
-      border-radius: 6px;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.8rem;
-      font-weight: 500;
-      opacity: 0;
-      pointer-events: none;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      z-index: 10;
-      box-shadow: 0 0 30px var(--terminal-green);
-    }
-
-    .copy-toast.show {
-      opacity: 1;
-      transform: translate(-50%, -50%) scale(1);
-    }
-
-    .copy-hint {
-      position: absolute;
-      top: 0.75rem;
-      right: 1rem;
-      font-size: 0.65rem;
-      color: var(--text-muted);
-      font-family: 'JetBrains Mono', monospace;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      opacity: 0.6;
-      transition: opacity 0.2s;
-      z-index: 1;
-    }
-
-    .terminal:hover .copy-hint {
-      opacity: 1;
-    }
-
-    /* Features */
-    .features {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 0.75rem;
-      margin-bottom: 2.5rem;
-    }
-
-    .feature {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.7rem;
-      color: var(--text-muted);
-      background: var(--bg-surface);
-      border: 1px solid var(--border);
-      padding: 0.4rem 0.9rem;
-      border-radius: 100px;
-      transition: all 0.2s;
-    }
-
-    .feature:hover {
-      border-color: var(--text-muted);
-      color: var(--text-primary);
-    }
-
-    /* Footer */
-    .footer {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-    }
-
-    .footer a {
-      color: var(--text-primary);
-      text-decoration: none;
-      transition: color 0.2s;
-    }
-
-    .footer a:hover {
-      color: var(--terminal-green);
-    }
-
-    /* Glitch effect on copy */
-    @keyframes glitch {
-      0% { transform: translate(0); }
-      20% { transform: translate(-2px, 2px); }
-      40% { transform: translate(-2px, -2px); }
-      60% { transform: translate(2px, 2px); }
-      80% { transform: translate(2px, -2px); }
-      100% { transform: translate(0); }
-    }
-
-    .terminal.copied {
-      animation: glitch 0.2s linear;
-    }
-
-    @media (max-width: 600px) {
       .terminal {
-        padding: 1rem 1.25rem;
+        background: var(--bg-surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1.25rem 1.5rem;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+        text-align: left;
+      }
+
+      .terminal::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          135deg,
+          var(--terminal-green-dim) 0%,
+          transparent 50%
+        );
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+
+      .terminal:hover {
+        border-color: var(--terminal-green);
+        box-shadow:
+          0 0 0 1px var(--terminal-green),
+          0 0 40px -10px var(--terminal-green),
+          inset 0 0 60px -30px var(--terminal-green-dim);
+      }
+
+      .terminal:hover::before {
+        opacity: 1;
+      }
+
+      .terminal:active {
+        transform: scale(0.995);
+      }
+
+      .terminal-label {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.7rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 0.5rem;
+        position: relative;
+        z-index: 1;
       }
 
       .terminal-command {
-        font-size: 0.8rem;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.9rem;
+        color: var(--terminal-green);
+        position: relative;
+        z-index: 1;
+        overflow-wrap: break-word;
+        word-break: keep-all;
+        text-shadow: 0 0 10px var(--terminal-green-dim);
+        line-height: 1.6;
       }
 
+      .terminal-command .highlight {
+        color: var(--terminal-amber);
+      }
+
+      /* Copy feedback */
+      .copy-toast {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(0.8);
+        background: var(--terminal-green);
+        color: var(--bg-deep);
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.8rem;
+        font-weight: 500;
+        opacity: 0;
+        pointer-events: none;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 10;
+        box-shadow: 0 0 30px var(--terminal-green);
+      }
+
+      .copy-toast.show {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+      }
+
+      .copy-hint {
+        position: absolute;
+        top: 0.75rem;
+        right: 1rem;
+        font-size: 0.65rem;
+        color: var(--text-muted);
+        font-family: "JetBrains Mono", monospace;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        opacity: 0.6;
+        transition: opacity 0.2s;
+        z-index: 1;
+      }
+
+      .terminal:hover .copy-hint {
+        opacity: 1;
+      }
+
+      /* Features */
       .features {
-        gap: 0.5rem;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.75rem;
+        margin-bottom: 2.5rem;
       }
 
       .feature {
-        font-size: 0.65rem;
-        padding: 0.35rem 0.7rem;
-      }
-    }
-  </style>
-</head>
-<body>
-  <div class="glow"></div>
-
-  <div class="container">
-    <h1 class="title">Jumbo<span>.</span></h1>
-    <p class="subtitle">Production-ready Rails 8.1 in one command</p>
-
-    <div class="name-input-wrapper">
-      <input
-        type="text"
-        class="name-input"
-        id="projectName"
-        placeholder="myapp"
-        oninput="updateCommands()"
-      >
-    </div>
-
-    <div class="terminals">
-      <div class="terminal" onclick="copyCommand('quick')">
-        <span class="copy-hint">click to copy</span>
-        <div class="terminal-label">Quick install</div>
-        <div class="terminal-command" id="quickCommand">
-          curl -fsSL rails.mrz.sh | sh -s <span class="highlight">myapp</span>
-        </div>
-        <div class="copy-toast" id="quickToast">Copied!</div>
-      </div>
-
-      <div class="terminal" onclick="copyCommand('full')">
-        <span class="copy-hint">click to copy</span>
-        <div class="terminal-label">Full command</div>
-        <div class="terminal-command" id="fullCommand">
-          rails new <span class="highlight">myapp</span> --skip-js -d=postgresql -m=https://rails.mrz.sh/t
-        </div>
-        <div class="copy-toast" id="fullToast">Copied!</div>
-      </div>
-    </div>
-
-    <div class="features">
-      <span class="feature">Inertia.js + React</span>
-      <span class="feature">TypeScript</span>
-      <span class="feature">Tailwind CSS</span>
-      <span class="feature">Bun</span>
-      <span class="feature">Kamal Deploy</span>
-      <span class="feature">Solid Queue</span>
-    </div>
-
-    <div class="footer">
-      <a href="https://github.com/meerzulee/jumbo-template">GitHub</a>
-    </div>
-  </div>
-
-  <script>
-    function updateCommands() {
-      const name = document.getElementById('projectName').value || 'myapp';
-
-      document.getElementById('quickCommand').innerHTML =
-        `curl -fsSL rails.mrz.sh | sh -s <span class="highlight">${name}</span>`;
-
-      document.getElementById('fullCommand').innerHTML =
-        `rails new <span class="highlight">${name}</span> --skip-js -d=postgresql -m=https://rails.mrz.sh/t`;
-    }
-
-    function copyCommand(type) {
-      const name = document.getElementById('projectName').value || 'myapp';
-      let command;
-
-      if (type === 'quick') {
-        command = `curl -fsSL rails.mrz.sh | sh -s ${name}`;
-      } else {
-        command = `rails new ${name} --skip-js -d=postgresql -m=https://rails.mrz.sh/t`;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.7rem;
+        color: var(--text-muted);
+        background: var(--bg-surface);
+        border: 1px solid var(--border);
+        padding: 0.4rem 0.9rem;
+        border-radius: 100px;
+        transition: all 0.2s;
       }
 
-      navigator.clipboard.writeText(command);
+      .feature:hover {
+        border-color: var(--text-muted);
+        color: var(--text-primary);
+      }
 
-      // Show toast
-      const toast = document.getElementById(type + 'Toast');
-      const terminal = toast.parentElement;
+      /* Footer */
+      .footer {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+      }
 
-      terminal.classList.add('copied');
-      setTimeout(() => terminal.classList.remove('copied'), 200);
+      .footer a {
+        color: var(--text-primary);
+        text-decoration: none;
+        transition: color 0.2s;
+      }
 
-      toast.classList.add('show');
-      setTimeout(() => toast.classList.remove('show'), 1500);
-    }
+      .footer a:hover {
+        color: var(--terminal-green);
+      }
 
-    // Select all on focus
-    document.getElementById('projectName').addEventListener('focus', function() {
-      this.select();
-    });
+      /* Glitch effect on copy */
+      @keyframes glitch {
+        0% {
+          transform: translate(0);
+        }
+        20% {
+          transform: translate(-2px, 2px);
+        }
+        40% {
+          transform: translate(-2px, -2px);
+        }
+        60% {
+          transform: translate(2px, 2px);
+        }
+        80% {
+          transform: translate(2px, -2px);
+        }
+        100% {
+          transform: translate(0);
+        }
+      }
 
-    // Auto-focus on page load
-    window.addEventListener('load', function() {
-      document.getElementById('projectName').focus();
-    });
-  </script>
-</body>
+      .terminal.copied {
+        animation: glitch 0.2s linear;
+      }
+
+      @media (max-width: 600px) {
+        .terminal {
+          padding: 1rem 1.25rem;
+        }
+
+        .terminal-command {
+          font-size: 0.8rem;
+        }
+
+        .features {
+          gap: 0.5rem;
+        }
+
+        .feature {
+          font-size: 0.65rem;
+          padding: 0.35rem 0.7rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="glow"></div>
+
+    <div class="container">
+      <h1 class="title">Jumbo<span>.</span></h1>
+      <p class="subtitle">Production-ready Rails 8.1 in one command</p>
+
+      <div class="name-input-wrapper">
+        <input
+          type="text"
+          class="name-input"
+          id="projectName"
+          placeholder="myapp"
+          oninput="updateCommands()"
+        />
+      </div>
+
+      <div class="terminals">
+        <div class="terminal" onclick="copyCommand('quick')">
+          <span class="copy-hint">click to copy</span>
+          <div class="terminal-label">Quick install</div>
+          <div class="terminal-command" id="quickCommand">
+            curl -fsSL rails.mrz.sh | sh -s <span class="highlight">myapp</span>
+          </div>
+          <div class="copy-toast" id="quickToast">Copied!</div>
+        </div>
+
+        <div class="terminal" onclick="copyCommand('full')">
+          <span class="copy-hint">click to copy</span>
+          <div class="terminal-label">Full command</div>
+          <div class="terminal-command" id="fullCommand">
+            rails new <span class="highlight">myapp</span> --skip-js
+            -d=postgresql -m=https://rails.mrz.sh/t
+          </div>
+          <div class="copy-toast" id="fullToast">Copied!</div>
+        </div>
+      </div>
+
+      <div class="features">
+        <span class="feature">Inertia.js + React</span>
+        <span class="feature">TypeScript</span>
+        <span class="feature">Tailwind CSS</span>
+        <span class="feature">Bun</span>
+        <span class="feature">Kamal Deploy</span>
+        <span class="feature">Solid Queue</span>
+      </div>
+
+      <div class="footer">
+        <a href="https://github.com/meerzulee/jumbo-template">GitHub</a>
+      </div>
+    </div>
+
+    <script>
+      function updateCommands() {
+        const name = document.getElementById("projectName").value || "myapp";
+
+        document.getElementById("quickCommand").innerHTML =
+          `curl -fsSL rails.mrz.sh | sh -s <span class="highlight">${name}</span>`;
+
+        document.getElementById("fullCommand").innerHTML =
+          `rails new <span class="highlight">${name}</span> --skip-js -d=postgresql -m=https://rails.mrz.sh/t`;
+      }
+
+      function copyCommand(type) {
+        const name = document.getElementById("projectName").value || "myapp";
+        let command;
+
+        if (type === "quick") {
+          command = `curl -fsSL rails.mrz.sh | sh -s ${name}`;
+        } else {
+          command = `rails new ${name} --skip-js -d=postgresql -m=https://rails.mrz.sh/t`;
+        }
+
+        navigator.clipboard.writeText(command);
+
+        // Show toast
+        const toast = document.getElementById(type + "Toast");
+        const terminal = toast.parentElement;
+
+        terminal.classList.add("copied");
+        setTimeout(() => terminal.classList.remove("copied"), 200);
+
+        toast.classList.add("show");
+        setTimeout(() => toast.classList.remove("show"), 1500);
+      }
+
+      // Select all on focus
+      document
+        .getElementById("projectName")
+        .addEventListener("focus", function () {
+          this.select();
+        });
+
+      // Auto-focus on page load
+      window.addEventListener("load", function () {
+        document.getElementById("projectName").focus();
+      });
+    </script>
+  </body>
 </html>
