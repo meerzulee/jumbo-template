@@ -12,3 +12,5 @@ Thumbs.db
 # Ruby version managers
 .ruby-version
 .rvmrc
+
+node_modules

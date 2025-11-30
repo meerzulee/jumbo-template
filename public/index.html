@@ -93,6 +93,7 @@
       z-index: 1;
       text-align: center;
       max-width: 700px;
+      width: 100%;
     }
 
     /* Title */
@@ -114,25 +115,56 @@
       font-size: 1.1rem;
       font-weight: 300;
       color: var(--text-muted);
-      margin-bottom: 3.5rem;
+      margin-bottom: 2.5rem;
       letter-spacing: 0.02em;
     }
 
-    /* Terminal Input */
-    .terminal-wrapper {
-      position: relative;
-      margin-bottom: 3rem;
+    /* Project name input */
+    .name-input-wrapper {
+      margin-bottom: 1.5rem;
+    }
+
+    .name-input {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.1rem;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.75rem 1.25rem;
+      color: var(--terminal-amber);
+      text-align: center;
+      outline: none;
+      width: 200px;
+      transition: all 0.2s;
+    }
+
+    .name-input:focus {
+      border-color: var(--terminal-amber);
+      box-shadow: 0 0 20px -5px var(--terminal-amber);
+    }
+
+    .name-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    /* Terminal boxes */
+    .terminals {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-bottom: 2.5rem;
     }
 
     .terminal {
       background: var(--bg-surface);
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 1.5rem 1.75rem;
+      padding: 1.25rem 1.5rem;
       cursor: pointer;
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       position: relative;
       overflow: hidden;
+      text-align: left;
     }
 
     .terminal::before {
@@ -160,75 +192,29 @@
       transform: scale(0.995);
     }
 
-    .terminal-header {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      margin-bottom: 1rem;
-      position: relative;
-      z-index: 1;
-    }
-
-    .terminal-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: var(--border);
-    }
-
-    .terminal-dot:nth-child(1) { background: #ff5f57; }
-    .terminal-dot:nth-child(2) { background: #ffbd2e; }
-    .terminal-dot:nth-child(3) { background: #28ca42; }
-
-    .terminal-input {
+    .terminal-label {
       font-family: 'JetBrains Mono', monospace;
-      font-size: 1rem;
-      font-weight: 400;
-      color: var(--terminal-green);
-      background: transparent;
-      border: none;
-      outline: none;
-      width: 100%;
-      cursor: pointer;
-      caret-color: transparent;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 0.5rem;
       position: relative;
       z-index: 1;
+    }
+
+    .terminal-command {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9rem;
+      color: var(--terminal-green);
+      position: relative;
+      z-index: 1;
+      word-break: break-all;
       text-shadow: 0 0 10px var(--terminal-green-dim);
     }
 
-    .terminal-input::selection {
-      background: var(--terminal-green);
-      color: var(--bg-deep);
-    }
-
-    .prompt {
-      font-family: 'JetBrains Mono', monospace;
+    .terminal-command .highlight {
       color: var(--terminal-amber);
-      margin-right: 0.75rem;
-      font-weight: 500;
-      position: relative;
-      z-index: 1;
-    }
-
-    .input-row {
-      display: flex;
-      align-items: center;
-    }
-
-    /* Blinking cursor */
-    .cursor {
-      display: inline-block;
-      width: 10px;
-      height: 1.2em;
-      background: var(--terminal-green);
-      margin-left: 2px;
-      animation: blink 1s step-end infinite;
-      vertical-align: text-bottom;
-      box-shadow: 0 0 10px var(--terminal-green);
-    }
-
-    @keyframes blink {
-      50% { opacity: 0; }
     }
 
     /* Copy feedback */
@@ -239,10 +225,10 @@
       transform: translate(-50%, -50%) scale(0.8);
       background: var(--terminal-green);
       color: var(--bg-deep);
-      padding: 0.75rem 1.5rem;
-      border-radius: 8px;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
       font-family: 'JetBrains Mono', monospace;
-      font-size: 0.9rem;
+      font-size: 0.8rem;
       font-weight: 500;
       opacity: 0;
       pointer-events: none;
@@ -257,10 +243,10 @@
     }
 
     .hint {
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       color: var(--text-muted);
-      margin-top: 1rem;
       font-family: 'JetBrains Mono', monospace;
+      margin-top: 0.75rem;
     }
 
     /* Features */
@@ -269,16 +255,16 @@
       flex-wrap: wrap;
       justify-content: center;
       gap: 0.75rem;
-      margin-bottom: 3rem;
+      margin-bottom: 2.5rem;
     }
 
     .feature {
       font-family: 'JetBrains Mono', monospace;
-      font-size: 0.75rem;
+      font-size: 0.7rem;
       color: var(--text-muted);
       background: var(--bg-surface);
       border: 1px solid var(--border);
-      padding: 0.5rem 1rem;
+      padding: 0.4rem 0.9rem;
       border-radius: 100px;
       transition: all 0.2s;
     }
@@ -318,17 +304,13 @@
       animation: glitch 0.2s linear;
     }
 
-    .terminal.copied .terminal-input {
-      color: var(--text-primary);
-    }
-
     @media (max-width: 600px) {
       .terminal {
-        padding: 1.25rem;
+        padding: 1rem 1.25rem;
       }
 
-      .terminal-input {
-        font-size: 0.85rem;
+      .terminal-command {
+        font-size: 0.8rem;
       }
 
       .features {
@@ -336,8 +318,8 @@
       }
 
       .feature {
-        font-size: 0.7rem;
-        padding: 0.4rem 0.8rem;
+        font-size: 0.65rem;
+        padding: 0.35rem 0.7rem;
       }
     }
   </style>
@@ -349,28 +331,36 @@
     <h1 class="title">Jumbo<span>.</span></h1>
     <p class="subtitle">Production-ready Rails in one command</p>
 
-    <div class="terminal-wrapper">
-      <div class="terminal" onclick="copyCommand()" id="terminal">
-        <div class="terminal-header">
-          <div class="terminal-dot"></div>
-          <div class="terminal-dot"></div>
-          <div class="terminal-dot"></div>
-        </div>
-        <div class="input-row">
-          <span class="prompt">$</span>
-          <input
-            type="text"
-            class="terminal-input"
-            value="rails new app_name -m=https://rails.mrz.sh/t"
-            readonly
-            id="command"
-          >
-          <span class="cursor"></span>
-        </div>
-        <div class="copy-toast" id="toast">Copied!</div>
-      </div>
-      <p class="hint">click to copy</p>
+    <div class="name-input-wrapper">
+      <input
+        type="text"
+        class="name-input"
+        id="projectName"
+        placeholder="myapp"
+        value="myapp"
+        oninput="updateCommands()"
+      >
     </div>
+
+    <div class="terminals">
+      <div class="terminal" onclick="copyCommand('quick')">
+        <div class="terminal-label">Quick install</div>
+        <div class="terminal-command" id="quickCommand">
+          curl -fsSL rails.mrz.sh | sh -s <span class="highlight">myapp</span>
+        </div>
+        <div class="copy-toast" id="quickToast">Copied!</div>
+      </div>
+
+      <div class="terminal" onclick="copyCommand('full')">
+        <div class="terminal-label">Full command</div>
+        <div class="terminal-command" id="fullCommand">
+          rails new <span class="highlight">myapp</span> --database=postgresql --skip-javascript -m=https://rails.mrz.sh/t
+        </div>
+        <div class="copy-toast" id="fullToast">Copied!</div>
+      </div>
+    </div>
+
+    <p class="hint">click to copy</p>
 
     <div class="features">
       <span class="feature">Inertia.js + React</span>
@@ -387,24 +377,41 @@
   </div>
 
   <script>
-    function copyCommand() {
-      const command = document.getElementById('command').value;
-      const terminal = document.getElementById('terminal');
-      const toast = document.getElementById('toast');
+    function updateCommands() {
+      const name = document.getElementById('projectName').value || 'myapp';
+
+      document.getElementById('quickCommand').innerHTML =
+        `curl -fsSL rails.mrz.sh | sh -s <span class="highlight">${name}</span>`;
+
+      document.getElementById('fullCommand').innerHTML =
+        `rails new <span class="highlight">${name}</span> --database=postgresql --skip-javascript -m=https://rails.mrz.sh/t`;
+    }
+
+    function copyCommand(type) {
+      const name = document.getElementById('projectName').value || 'myapp';
+      let command;
+
+      if (type === 'quick') {
+        command = `curl -fsSL rails.mrz.sh | sh -s ${name}`;
+      } else {
+        command = `rails new ${name} --database=postgresql --skip-javascript -m=https://rails.mrz.sh/t`;
+      }
 
       navigator.clipboard.writeText(command);
 
-      // Glitch effect
+      // Show toast
+      const toast = document.getElementById(type + 'Toast');
+      const terminal = toast.parentElement;
+
       terminal.classList.add('copied');
       setTimeout(() => terminal.classList.remove('copied'), 200);
 
-      // Show toast
       toast.classList.add('show');
       setTimeout(() => toast.classList.remove('show'), 1500);
     }
 
     // Select all on focus
-    document.getElementById('command').addEventListener('focus', function() {
+    document.getElementById('projectName').addEventListener('focus', function() {
       this.select();
     });
   </script>
