@@ -72,6 +72,47 @@ def setup_inertia
   rails_command 'generate inertia:install --framework=react --typescript --package-manager=bun --tailwind --vite --verbose --example-page --force'
 end
 
+def setup_shadcn
+  say 'Configuring tsconfig files for shadcn/ui...', :blue
+
+  # Configure tsconfig.app.json
+  tsconfig_app_path = 'tsconfig.app.json'
+  if File.exist?(tsconfig_app_path)
+    tsconfig_app = JSON.parse(File.read(tsconfig_app_path))
+    tsconfig_app['compilerOptions'] ||= {}
+    tsconfig_app['compilerOptions']['baseUrl'] = '.'
+    tsconfig_app['compilerOptions']['paths'] = {
+      '@/*' => ['./app/frontend/*'],
+      '~/*' => ['./app/frontend/*']
+    }
+    File.write(tsconfig_app_path, JSON.pretty_generate(tsconfig_app) + "\n")
+    say "Updated: #{tsconfig_app_path}", :green
+  else
+    say "File not found: #{tsconfig_app_path}", :red
+  end
+
+  # Configure tsconfig.json (shadcn/ui requires different baseUrl and paths)
+  tsconfig_path = 'tsconfig.json'
+  if File.exist?(tsconfig_path)
+    tsconfig = JSON.parse(File.read(tsconfig_path))
+    tsconfig['compilerOptions'] ||= {}
+    tsconfig['compilerOptions']['baseUrl'] = './app/frontend'
+    tsconfig['compilerOptions']['paths'] = {
+      '@/*' => ['./*']
+    }
+    File.write(tsconfig_path, JSON.pretty_generate(tsconfig) + "\n")
+    say "Updated: #{tsconfig_path}", :green
+  else
+    say "File not found: #{tsconfig_path}", :red
+  end
+
+  say 'tsconfig files configured for Inertia.js + shadcn/ui', :green
+
+  say 'Installing shadcn/ui...', :blue
+  run 'bunx shadcn@latest init --defaults --yes'
+  say 'shadcn/ui installed', :green
+end
+
 def setup_annotaterb
   say 'Installing annotaterb...', :blue
   rails_command 'generate annotate_rb:install'
@@ -455,6 +496,7 @@ def main
 
   after_bundle do
     setup_inertia
+    setup_shadcn
     ensure_bun_package_manager
     setup_procfile
     copy_rubocop_config
