@@ -1,94 +1,75 @@
-# Jumbo Rails Template
+# Jumbo
 
-A custom Rails application template for quickly bootstrapping new Rails projects with PostgreSQL and your preferred configuration.
+Production-ready Rails 8.1 in one command.
 
-## Usage
-
-### Creating a new Rails app with this template
+## Quick Start
 
 ```bash
-rails new {project_name} --database=postgresql --skip-javascript -m=template.rb
+curl -fsSL rails.mrz.sh | sh -s myapp
 ```
 
-Or using a remote URL:
+Or using the full command:
 
 ```bash
-rails new {project_name} --database=postgresql --skip-javascript -m=https://raw.githubusercontent.com/username/jumbo-template/master/template.rb
+rails new myapp --skip-js -d=postgresql -m=https://rails.mrz.sh/t
 ```
-
-### Template Configuration
-
-This template is designed to work with:
-- **PostgreSQL** as the database
-- **No JavaScript** setup (--skip-javascript flag)
-- **Inertia.js** for modern SPA development with Rails
 
 ## What's Included
 
-### Gems
-- **inertia_rails** (3.x) - Build modern single-page apps with Rails backend
-- **pgreset** - Quick PostgreSQL database reset tool
-- **annotaterb** - Automatically annotate models with schema information
-- **letter_opener** - Preview emails in browser during development
+### Frontend Stack
+- **Inertia.js** + **React** - SPA experience without the complexity
+- **TypeScript** - Type-safe frontend development
+- **Tailwind CSS** - Utility-first styling
+- **Vite** - Lightning-fast HMR and bundling
+- **Bun** - Fast package manager
 
-### Frontend Stack (via Inertia installer)
-- **React** with **TypeScript**
-- **Tailwind CSS** for styling
-- **Vite** for fast frontend bundling
-- **Bun** as the package manager
-- Example page to get started quickly
+### Backend Stack
+- **Rails 8.1** with PostgreSQL
+- **Solid Queue** - Database-backed Active Job backend
+- **Solid Cache** - Database-backed caching
+- **Solid Cable** - Database-backed Action Cable
 
-### Configuration
-- **Procfile.dev** - Set up to run both Rails server and Vite dev server simultaneously
-- **Multi-database setup** - Configured for primary, cache, queue, and cable databases
-- **Environment-specific credentials** - Separate encrypted credentials for development, staging, and production
+### Deployment
+- **Kamal** - Zero-downtime deployments
+- **Multi-stage environments** - Development, staging, and production
+- **Environment-specific credentials** - Separate encrypted credentials per environment
 - **Environment-specific seeds** - Organized seed files per environment
 
-## Development Tips
-
-### Testing Solid Cache in Development
-
-If you want to test Solid Cache in the development environment, add this to `config/environments/development.rb`:
-
-```ruby
-config.cache_store = :solid_cache_store
-```
+### Developer Experience
+- **Procfile.dev** - Run Rails + Vite simultaneously
+- **pgreset** - Quick PostgreSQL database reset
+- **annotaterb** - Auto-annotate models with schema
+- **letter_opener** - Preview emails in browser
 
 ## Before Deploying
 
-Before deploying your application with Kamal, you need to configure the deployment files:
-
 ### 1. Update `config/deploy.yml`
 
-Replace the following placeholders:
-- `APP_NAME` - Your application name (e.g., `my_app`)
+Replace the placeholders:
+- `APP_NAME` - Your application name
 - `REGISTRY_USERNAME` - Your Docker registry username
 
 ### 2. Update `config/deploy.staging.yml`
 
-Replace the following placeholders:
-- `STAGING_SERVER_IP` - Your staging server IP address
+Replace the placeholders:
+- `STAGING_SERVER_IP` - Your staging server IP
 - `staging.example.com` - Your staging domain
 - `deploy` - Your SSH username
 - `22` - Your SSH port (if different)
-- `APP_NAME` - Your application name (should match deploy.yml)
 
 ### 3. Update `config/deploy.production.yml`
 
-Replace the following placeholders:
-- `PRODUCTION_SERVER_IP` - Your production server IP address
+Replace the placeholders:
+- `PRODUCTION_SERVER_IP` - Your production server IP
 - `example.com` - Your production domain
 - `deploy` - Your SSH username
 - `22` - Your SSH port (if different)
-- `APP_NAME` - Your application name (should match deploy.yml)
 
 ### 4. Set up Kamal secrets
 
-Configure your `.kamal/secrets` file with the required environment variables:
-- `KAMAL_REGISTRY_SERVER` - Docker registry server
-- `KAMAL_REGISTRY_USERNAME` - Docker registry username
+Configure `.kamal/secrets`:
 - `KAMAL_REGISTRY_PASSWORD` - Docker registry password
-- `RAILS_MASTER_KEY` - Rails master key (from `config/credentials/production.key` or `config/credentials/staging.key`)
+- `RAILS_MASTER_KEY` - From `config/credentials/production.key`
 - `POSTGRES_PASSWORD` - PostgreSQL password
 
 ### 5. Deploy
@@ -101,28 +82,14 @@ kamal deploy -d staging
 kamal deploy -d production
 ```
 
-## Development
+## Roadmap
 
-To work on this template:
+- [ ] React shadcn/ui components
 
-1. Clone this repository
-2. Make your changes to `template.rb`
-3. Test by creating a new Rails app with the template
-4. Commit and push your changes
+## Links
 
-## Testing the Template
-
-```bash
-# Create a test Rails app
-rails new test_app --database=postgresql --skip-javascript -m=template.rb
-
-# Clean up after testing
-rm -rf test_app
-```
-
-## Contributing
-
-This is a personal template, but feel free to fork and customize for your own needs.
+- Website: https://rails.mrz.sh
+- GitHub: https://github.com/meerzulee/jumbo-template
 
 ## License
 
