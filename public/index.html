@@ -123,6 +123,8 @@
     .name-input-wrapper {
       margin-bottom: 1.5rem;
       position: relative;
+      display: inline-block;
+      cursor: default;
     }
 
     .name-input {
@@ -133,49 +135,54 @@
       border-radius: 8px;
       padding: 0.75rem 1.25rem;
       color: var(--terminal-amber);
-      text-align: center;
+      text-align: left;
       outline: none;
       width: 200px;
       transition: all 0.2s;
+      cursor: text;
     }
 
     .name-input:focus {
       border-color: var(--terminal-amber);
       box-shadow: 0 0 20px -5px var(--terminal-amber);
+      caret-color: var(--terminal-amber);
     }
 
     .name-input::placeholder {
       color: var(--text-muted);
     }
 
-    /* Blinking cursor effect for empty input */
-    .name-input:placeholder-shown::after {
-      content: '|';
-      animation: blink 1s step-end infinite;
-    }
-
-    .cursor-blink {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      transform: translate(18px, -50%);
-      color: var(--terminal-amber);
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 1.1rem;
-      animation: blink 1s step-end infinite;
-      pointer-events: none;
-      opacity: 1;
-      transition: opacity 0.1s;
-    }
-
-    .name-input:focus + .cursor-blink,
-    .name-input:not(:placeholder-shown) + .cursor-blink {
-      opacity: 0;
-    }
-
+    /* Blinking caret effect */
     @keyframes blink {
       0%, 100% { opacity: 1; }
       50% { opacity: 0; }
+    }
+
+    .name-input:placeholder-shown:not(:focus) {
+      caret-color: transparent;
+    }
+
+    .name-input-wrapper::after {
+      content: '';
+      position: absolute;
+      left: 1.25rem;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 2px;
+      height: 1.2em;
+      background: var(--terminal-amber);
+      animation: blink 1s step-end infinite;
+      pointer-events: none;
+    }
+
+    .name-input:focus + .name-input-wrapper::after,
+    .name-input:not(:placeholder-shown) ~ .name-input-wrapper::after {
+      display: none;
+    }
+
+    .name-input-wrapper:has(.name-input:focus)::after,
+    .name-input-wrapper:has(.name-input:not(:placeholder-shown))::after {
+      display: none;
     }
 
     /* Terminal boxes */
@@ -240,8 +247,10 @@
       color: var(--terminal-green);
       position: relative;
       z-index: 1;
-      word-break: break-all;
+      overflow-wrap: break-word;
+      word-break: keep-all;
       text-shadow: 0 0 10px var(--terminal-green-dim);
+      line-height: 1.6;
     }
 
     .terminal-command .highlight {
@@ -273,11 +282,22 @@
       transform: translate(-50%, -50%) scale(1);
     }
 
-    .hint {
-      font-size: 0.75rem;
+    .copy-hint {
+      position: absolute;
+      top: 0.75rem;
+      right: 1rem;
+      font-size: 0.65rem;
       color: var(--text-muted);
       font-family: 'JetBrains Mono', monospace;
-      margin-top: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      opacity: 0.6;
+      transition: opacity 0.2s;
+      z-index: 1;
+    }
+
+    .terminal:hover .copy-hint {
+      opacity: 1;
     }
 
     /* Features */
@@ -360,7 +380,7 @@
 
   <div class="container">
     <h1 class="title">Jumbo<span>.</span></h1>
-    <p class="subtitle">Production-ready Rails in one command</p>
+    <p class="subtitle">Production-ready Rails 8.1 in one command</p>
 
     <div class="name-input-wrapper">
       <input
@@ -370,11 +390,11 @@
         placeholder="myapp"
         oninput="updateCommands()"
       >
-      <span class="cursor-blink">|</span>
     </div>
 
     <div class="terminals">
       <div class="terminal" onclick="copyCommand('quick')">
+        <span class="copy-hint">click to copy</span>
         <div class="terminal-label">Quick install</div>
         <div class="terminal-command" id="quickCommand">
           curl -fsSL rails.mrz.sh | sh -s <span class="highlight">myapp</span>
@@ -383,15 +403,14 @@
       </div>
 
       <div class="terminal" onclick="copyCommand('full')">
+        <span class="copy-hint">click to copy</span>
         <div class="terminal-label">Full command</div>
         <div class="terminal-command" id="fullCommand">
-          rails new <span class="highlight">myapp</span> --database=postgresql --skip-javascript -m=https://rails.mrz.sh/t
+          rails new <span class="highlight">myapp</span> --skip-js -d=postgresql -m=https://rails.mrz.sh/t
         </div>
         <div class="copy-toast" id="fullToast">Copied!</div>
       </div>
     </div>
-
-    <p class="hint">click to copy</p>
 
     <div class="features">
       <span class="feature">Inertia.js + React</span>
@@ -415,7 +434,7 @@
         `curl -fsSL rails.mrz.sh | sh -s <span class="highlight">${name}</span>`;
 
       document.getElementById('fullCommand').innerHTML =
-        `rails new <span class="highlight">${name}</span> --database=postgresql --skip-javascript -m=https://rails.mrz.sh/t`;
+        `rails new <span class="highlight">${name}</span> --skip-js -d=postgresql -m=https://rails.mrz.sh/t`;
     }
 
     function copyCommand(type) {
@@ -425,7 +444,7 @@
       if (type === 'quick') {
         command = `curl -fsSL rails.mrz.sh | sh -s ${name}`;
       } else {
-        command = `rails new ${name} --database=postgresql --skip-javascript -m=https://rails.mrz.sh/t`;
+        command = `rails new ${name} --skip-js -d=postgresql -m=https://rails.mrz.sh/t`;
       }
 
       navigator.clipboard.writeText(command);
