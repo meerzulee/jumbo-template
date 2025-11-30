@@ -20,6 +20,7 @@ rails new myapp --skip-js -d=postgresql -m=https://rails.mrz.sh/t
 - **Inertia.js** + **React** - SPA experience without the complexity
 - **TypeScript** - Type-safe frontend development
 - **Tailwind CSS** - Utility-first styling
+- **shadcn/ui** - Beautiful, accessible UI components
 - **Vite** - Lightning-fast HMR and bundling
 - **Bun** - Fast package manager
 
@@ -84,7 +85,7 @@ kamal deploy -d production
 
 ## Roadmap
 
-- [ ] React shadcn/ui components
+- [x] React shadcn/ui components
 
 ## Links
 
