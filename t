@@ -1,7 +1,30 @@
 # Jumbo Rails Template
-# Usage: rails new {project_name} --database=postgresql --skip-javascript -m=template.rb
+# Usage (local):  rails new {project_name} --database=postgresql --skip-javascript -m t
+# Usage (remote): rails new {project_name} --database=postgresql --skip-javascript -m https://rails.mrz.sh/t
 
-TEMPLATE_ROOT = __dir__
+REMOTE_ROOT = "https://rails.mrz.sh/template"
+LOCAL_ROOT = File.join(__dir__, "template")
+
+def remote?
+  !File.exist?(LOCAL_ROOT)
+end
+
+def fetch_file(source, destination, options = {})
+  if remote?
+    get "#{REMOTE_ROOT}/#{source}", destination, options
+  else
+    copy_file File.join(LOCAL_ROOT, source), destination, options
+  end
+end
+
+def fetch_directory(source, destination, files)
+  if remote?
+    empty_directory destination
+    files.each { |f| get "#{REMOTE_ROOT}/#{source}/#{f}", "#{destination}/#{f}" }
+  else
+    directory File.join(LOCAL_ROOT, source), destination
+  end
+end
 
 def add_gems
   # Inertia.js for building modern single-page apps
@@ -89,28 +112,28 @@ end
 
 def copy_rubocop_config
   say 'Copying RuboCop configuration...', :blue
-  copy_file File.join(TEMPLATE_ROOT, '.rubocop.yml'), '.rubocop.yml', force: true
+  fetch_file '.rubocop.yml', '.rubocop.yml', force: true
 end
 
 def copy_env_example
   say 'Copying .env.example...', :blue
-  copy_file File.join(TEMPLATE_ROOT, '.env.example'), '.env.example', force: true
+  fetch_file '.env.example', '.env.example', force: true
 end
 
 def copy_dockerfile
   say 'Copying Dockerfile...', :blue
   app_name_value = app_const_base.underscore
-  copy_file File.join(TEMPLATE_ROOT, 'Dockerfile'), 'Dockerfile', force: true
+  fetch_file 'Dockerfile', 'Dockerfile', force: true
   gsub_file 'Dockerfile', 'APP_NAME', app_name_value
   say 'Dockerfile configured for production deployment', :green
 end
 
 def copy_config_files
   say 'Copying cable, cache, queue, and recurring configurations...', :blue
-  copy_file File.join(TEMPLATE_ROOT, 'config/cable.yml'), 'config/cable.yml', force: true
-  copy_file File.join(TEMPLATE_ROOT, 'config/cache.yml'), 'config/cache.yml', force: true
-  copy_file File.join(TEMPLATE_ROOT, 'config/queue.yml'), 'config/queue.yml', force: true
-  copy_file File.join(TEMPLATE_ROOT, 'config/recurring.yml'), 'config/recurring.yml', force: true
+  fetch_file 'config/cable.yml', 'config/cable.yml', force: true
+  fetch_file 'config/cache.yml', 'config/cache.yml', force: true
+  fetch_file 'config/queue.yml', 'config/queue.yml', force: true
+  fetch_file 'config/recurring.yml', 'config/recurring.yml', force: true
 end
 
 def setup_deploy_configs
@@ -121,13 +144,13 @@ def setup_deploy_configs
   app_name_hyphen = app_name_value.gsub('_', '-')
 
   # Copy and replace APP_NAME in deploy files
-  copy_file File.join(TEMPLATE_ROOT, 'config/deploy.yml'), 'config/deploy.yml', force: true
+  fetch_file 'config/deploy.yml', 'config/deploy.yml', force: true
   gsub_file 'config/deploy.yml', 'APP_NAME', app_name_hyphen
 
-  copy_file File.join(TEMPLATE_ROOT, 'config/deploy.staging.yml'), 'config/deploy.staging.yml', force: true
+  fetch_file 'config/deploy.staging.yml', 'config/deploy.staging.yml', force: true
   gsub_file 'config/deploy.staging.yml', 'APP_NAME', app_name_value
 
-  copy_file File.join(TEMPLATE_ROOT, 'config/deploy.production.yml'), 'config/deploy.production.yml', force: true
+  fetch_file 'config/deploy.production.yml', 'config/deploy.production.yml', force: true
   gsub_file 'config/deploy.production.yml', 'APP_NAME', app_name_value
 
   say 'Kamal deploy configurations created with app name: ' + app_name_hyphen, :green
@@ -140,9 +163,9 @@ def setup_kamal_secrets
   remove_file '.kamal/secrets' if File.exist?('.kamal/secrets')
 
   # Copy the environment-specific secrets files
-  copy_file File.join(TEMPLATE_ROOT, '.kamal/secrets-common'), '.kamal/secrets-common', force: true
-  copy_file File.join(TEMPLATE_ROOT, '.kamal/secrets.staging'), '.kamal/secrets.staging', force: true
-  copy_file File.join(TEMPLATE_ROOT, '.kamal/secrets.production'), '.kamal/secrets.production', force: true
+  fetch_file '.kamal/secrets-common', '.kamal/secrets-common', force: true
+  fetch_file '.kamal/secrets.staging', '.kamal/secrets.staging', force: true
+  fetch_file '.kamal/secrets.production', '.kamal/secrets.production', force: true
 
   say 'Kamal secrets configured:', :green
   say '  • .kamal/secrets-common (common environment variables)'
@@ -152,14 +175,14 @@ end
 
 def setup_zellij
   say 'Setting up Zellij configuration...', :blue
-  directory File.join(TEMPLATE_ROOT, '.zellij'), '.zellij'
-  copy_file File.join(TEMPLATE_ROOT, 'bin/ze'), 'bin/ze', force: true
+  fetch_directory '.zellij', '.zellij', ['layout.kdl']
+  fetch_file 'bin/ze', 'bin/ze', force: true
   chmod 'bin/ze', 0755
 end
 
 def setup_bin_scripts
   say 'Setting up custom bin scripts...', :blue
-  copy_file File.join(TEMPLATE_ROOT, 'bin/db-reset'), 'bin/db-reset', force: true
+  fetch_file 'bin/db-reset', 'bin/db-reset', force: true
   chmod 'bin/db-reset', 0755
 end
 
@@ -268,8 +291,14 @@ def setup_multi_db_migrations
   say 'Setting up multi-database migrations...', :blue
 
   # Copy migration directories for cable, cache, and queue databases
-  %w[cable_migrate cache_migrate queue_migrate].each do |migrate_dir|
-    directory File.join(TEMPLATE_ROOT, 'db', migrate_dir), "db/#{migrate_dir}"
+  migration_files = {
+    'db/cable_migrate' => ['001_create_cable_table.rb'],
+    'db/cache_migrate' => ['001_create_cache_table.rb'],
+    'db/queue_migrate' => ['001_create_queue_table.rb']
+  }
+
+  migration_files.each do |migrate_dir, files|
+    fetch_directory migrate_dir, migrate_dir, files
   end
 
   say 'Multi-database migrations created:', :green

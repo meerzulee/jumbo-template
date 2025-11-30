@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jumbo Rails Template</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Outfit:wght@300;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-deep: #050505;
+      --bg-surface: #0a0a0a;
+      --terminal-green: #00ff9f;
+      --terminal-green-dim: #00ff9f22;
+      --terminal-amber: #ffb800;
+      --text-primary: #e8e8e8;
+      --text-muted: #666;
+      --border: #1a1a1a;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      font-size: 16px;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg-deep);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Scanline overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 0, 0, 0.15) 2px,
+        rgba(0, 0, 0, 0.15) 4px
+      );
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    /* Noise texture */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+      opacity: 0.03;
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    /* Ambient glow */
+    .glow {
+      position: fixed;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, var(--terminal-green-dim) 0%, transparent 70%);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      animation: pulse 8s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.3; transform: translate(-50%, -50%) scale(1); }
+      50% { opacity: 0.5; transform: translate(-50%, -50%) scale(1.1); }
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      max-width: 700px;
+    }
+
+    /* Title */
+    .title {
+      font-size: clamp(3rem, 10vw, 5rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.5rem;
+      color: var(--text-primary);
+      text-shadow: 0 0 60px var(--terminal-green-dim);
+    }
+
+    .title span {
+      color: var(--terminal-green);
+      text-shadow: 0 0 30px var(--terminal-green);
+    }
+
+    .subtitle {
+      font-size: 1.1rem;
+      font-weight: 300;
+      color: var(--text-muted);
+      margin-bottom: 3.5rem;
+      letter-spacing: 0.02em;
+    }
+
+    /* Terminal Input */
+    .terminal-wrapper {
+      position: relative;
+      margin-bottom: 3rem;
+    }
+
+    .terminal {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem 1.75rem;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .terminal::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, var(--terminal-green-dim) 0%, transparent 50%);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .terminal:hover {
+      border-color: var(--terminal-green);
+      box-shadow:
+        0 0 0 1px var(--terminal-green),
+        0 0 40px -10px var(--terminal-green),
+        inset 0 0 60px -30px var(--terminal-green-dim);
+    }
+
+    .terminal:hover::before {
+      opacity: 1;
+    }
+
+    .terminal:active {
+      transform: scale(0.995);
+    }
+
+    .terminal-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .terminal-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--border);
+    }
+
+    .terminal-dot:nth-child(1) { background: #ff5f57; }
+    .terminal-dot:nth-child(2) { background: #ffbd2e; }
+    .terminal-dot:nth-child(3) { background: #28ca42; }
+
+    .terminal-input {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1rem;
+      font-weight: 400;
+      color: var(--terminal-green);
+      background: transparent;
+      border: none;
+      outline: none;
+      width: 100%;
+      cursor: pointer;
+      caret-color: transparent;
+      position: relative;
+      z-index: 1;
+      text-shadow: 0 0 10px var(--terminal-green-dim);
+    }
+
+    .terminal-input::selection {
+      background: var(--terminal-green);
+      color: var(--bg-deep);
+    }
+
+    .prompt {
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--terminal-amber);
+      margin-right: 0.75rem;
+      font-weight: 500;
+      position: relative;
+      z-index: 1;
+    }
+
+    .input-row {
+      display: flex;
+      align-items: center;
+    }
+
+    /* Blinking cursor */
+    .cursor {
+      display: inline-block;
+      width: 10px;
+      height: 1.2em;
+      background: var(--terminal-green);
+      margin-left: 2px;
+      animation: blink 1s step-end infinite;
+      vertical-align: text-bottom;
+      box-shadow: 0 0 10px var(--terminal-green);
+    }
+
+    @keyframes blink {
+      50% { opacity: 0; }
+    }
+
+    /* Copy feedback */
+    .copy-toast {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.8);
+      background: var(--terminal-green);
+      color: var(--bg-deep);
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9rem;
+      font-weight: 500;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 10;
+      box-shadow: 0 0 30px var(--terminal-green);
+    }
+
+    .copy-toast.show {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    .hint {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 1rem;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Features */
+    .features {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.75rem;
+      margin-bottom: 3rem;
+    }
+
+    .feature {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      padding: 0.5rem 1rem;
+      border-radius: 100px;
+      transition: all 0.2s;
+    }
+
+    .feature:hover {
+      border-color: var(--text-muted);
+      color: var(--text-primary);
+    }
+
+    /* Footer */
+    .footer {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .footer a {
+      color: var(--text-primary);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .footer a:hover {
+      color: var(--terminal-green);
+    }
+
+    /* Glitch effect on copy */
+    @keyframes glitch {
+      0% { transform: translate(0); }
+      20% { transform: translate(-2px, 2px); }
+      40% { transform: translate(-2px, -2px); }
+      60% { transform: translate(2px, 2px); }
+      80% { transform: translate(2px, -2px); }
+      100% { transform: translate(0); }
+    }
+
+    .terminal.copied {
+      animation: glitch 0.2s linear;
+    }
+
+    .terminal.copied .terminal-input {
+      color: var(--text-primary);
+    }
+
+    @media (max-width: 600px) {
+      .terminal {
+        padding: 1.25rem;
+      }
+
+      .terminal-input {
+        font-size: 0.85rem;
+      }
+
+      .features {
+        gap: 0.5rem;
+      }
+
+      .feature {
+        font-size: 0.7rem;
+        padding: 0.4rem 0.8rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="glow"></div>
+
+  <div class="container">
+    <h1 class="title">Jumbo<span>.</span></h1>
+    <p class="subtitle">Production-ready Rails in one command</p>
+
+    <div class="terminal-wrapper">
+      <div class="terminal" onclick="copyCommand()" id="terminal">
+        <div class="terminal-header">
+          <div class="terminal-dot"></div>
+          <div class="terminal-dot"></div>
+          <div class="terminal-dot"></div>
+        </div>
+        <div class="input-row">
+          <span class="prompt">$</span>
+          <input
+            type="text"
+            class="terminal-input"
+            value="rails new app_name -m=https://rails.mrz.sh/t"
+            readonly
+            id="command"
+          >
+          <span class="cursor"></span>
+        </div>
+        <div class="copy-toast" id="toast">Copied!</div>
+      </div>
+      <p class="hint">click to copy</p>
+    </div>
+
+    <div class="features">
+      <span class="feature">Inertia.js + React</span>
+      <span class="feature">TypeScript</span>
+      <span class="feature">Tailwind CSS</span>
+      <span class="feature">Bun</span>
+      <span class="feature">Kamal Deploy</span>
+      <span class="feature">Solid Queue</span>
+    </div>
+
+    <div class="footer">
+      <a href="https://github.com/meerzulee/jumbo-template">GitHub</a>
+    </div>
+  </div>
+
+  <script>
+    function copyCommand() {
+      const command = document.getElementById('command').value;
+      const terminal = document.getElementById('terminal');
+      const toast = document.getElementById('toast');
+
+      navigator.clipboard.writeText(command);
+
+      // Glitch effect
+      terminal.classList.add('copied');
+      setTimeout(() => terminal.classList.remove('copied'), 200);
+
+      // Show toast
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 1500);
+    }
+
+    // Select all on focus
+    document.getElementById('command').addEventListener('focus', function() {
+      this.select();
+    });
+  </script>
+</body>
+</html>
