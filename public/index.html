@@ -122,6 +122,7 @@
     /* Project name input */
     .name-input-wrapper {
       margin-bottom: 1.5rem;
+      position: relative;
     }
 
     .name-input {
@@ -145,6 +146,36 @@
 
     .name-input::placeholder {
       color: var(--text-muted);
+    }
+
+    /* Blinking cursor effect for empty input */
+    .name-input:placeholder-shown::after {
+      content: '|';
+      animation: blink 1s step-end infinite;
+    }
+
+    .cursor-blink {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(18px, -50%);
+      color: var(--terminal-amber);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.1rem;
+      animation: blink 1s step-end infinite;
+      pointer-events: none;
+      opacity: 1;
+      transition: opacity 0.1s;
+    }
+
+    .name-input:focus + .cursor-blink,
+    .name-input:not(:placeholder-shown) + .cursor-blink {
+      opacity: 0;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
     }
 
     /* Terminal boxes */
@@ -337,9 +368,9 @@
         class="name-input"
         id="projectName"
         placeholder="myapp"
-        value="myapp"
         oninput="updateCommands()"
       >
+      <span class="cursor-blink">|</span>
     </div>
 
     <div class="terminals">
@@ -413,6 +444,11 @@
     // Select all on focus
     document.getElementById('projectName').addEventListener('focus', function() {
       this.select();
+    });
+
+    // Auto-focus on page load
+    window.addEventListener('load', function() {
+      document.getElementById('projectName').focus();
     });
   </script>
 </body>
