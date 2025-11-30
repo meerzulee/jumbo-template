@@ -97,6 +97,14 @@ def copy_env_example
   copy_file File.join(TEMPLATE_ROOT, '.env.example'), '.env.example', force: true
 end
 
+def copy_dockerfile
+  say 'Copying Dockerfile...', :blue
+  app_name_value = app_const_base.underscore
+  copy_file File.join(TEMPLATE_ROOT, 'Dockerfile'), 'Dockerfile', force: true
+  gsub_file 'Dockerfile', 'APP_NAME', app_name_value
+  say 'Dockerfile configured for production deployment', :green
+end
+
 def copy_config_files
   say 'Copying cable, cache, queue, and recurring configurations...', :blue
   copy_file File.join(TEMPLATE_ROOT, 'config/cable.yml'), 'config/cable.yml', force: true
@@ -422,6 +430,7 @@ def main
     setup_procfile
     copy_rubocop_config
     copy_env_example
+    copy_dockerfile
     copy_config_files
     setup_deploy_configs
     setup_kamal_secrets
@@ -452,6 +461,10 @@ def main
     say '  • Vite bundler (via Inertia installer)'
     say '  • Bun package manager'
     say '  • Example page included'
+    say
+    say 'Deployment:', :blue
+    say '  • Dockerfile for production (multi-stage build)'
+    say '  • Kamal deploy configurations'
     say
   end
 end
