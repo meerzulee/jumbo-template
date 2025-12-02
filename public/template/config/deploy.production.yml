@@ -25,7 +25,7 @@ accessories:
         POSTGRES_DB: APP_NAME_production
       secret:
         - POSTGRES_PASSWORD
-    directories:
+    volumes:
       - APP_NAME_production_postgres_data:/var/lib/postgresql/data
 
   postgres-trifecta:
@@ -37,5 +37,5 @@ accessories:
         POSTGRES_DB: APP_NAME_trifecta
       secret:
         - POSTGRES_PASSWORD
-    directories:
+    volumes:
       - APP_NAME_production_postgres_trifecta_data:/var/lib/postgresql/data
