@@ -86,6 +86,7 @@ kamal deploy -d production
 ## Roadmap
 
 - [x] React shadcn/ui components
+- [ ] Add Claude skills
 
 ## Links
 
