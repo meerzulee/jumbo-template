@@ -1,3 +1,6 @@
+# Build output
+dist/
+
 # Template testing - ignore test projects
 test_app/
 tmp_test/

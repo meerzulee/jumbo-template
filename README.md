@@ -92,6 +92,35 @@ kamal deploy -d production
 - Website: https://rails.mrz.sh
 - GitHub: https://github.com/meerzulee/jumbo-template
 
+## Development
+
+Working on the template itself:
+
+```bash
+# Build dist/ from src/ and public/
+make build
+
+# Run local dev server
+make dev
+
+# Deploy to Cloudflare
+make deploy
+
+# Clean build output
+make clean
+```
+
+### Project Structure
+
+```
+src/
+├── template.rb     # Rails template file → dist/t
+└── template/       # Template files → dist/template/
+
+public/             # Static assets → dist/
+dist/               # Build output (gitignored)
+```
+
 ## License
 
 MIT
