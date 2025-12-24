@@ -70,6 +70,12 @@ end
 def setup_inertia
   say 'Setting up Inertia.js with React, TypeScript, and Tailwind...', :blue
   rails_command 'generate inertia:install --framework=react --typescript --package-manager=bun --tailwind --vite --verbose --example-page --force'
+
+  # Workaround for vite_ruby bundler bug (uses deprecated --path flag)
+  unless File.exist?('bin/vite')
+    say 'Creating bin/vite binstub...', :yellow
+    run 'bundle binstubs vite_ruby --force'
+  end
 end
 
 def setup_shadcn
