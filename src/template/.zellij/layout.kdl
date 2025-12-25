@@ -29,8 +29,7 @@ layout {
       }
       pane {
         name "dev server"
-        command "sh"
-        args "bin/dev"
+        command "bin/dev"
       }
     }
   }
