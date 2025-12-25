@@ -14,6 +14,37 @@ Or using the full command:
 rails new myapp --skip-js -d=postgresql -m=https://rails.mrz.sh/t
 ```
 
+## Feature Groups
+
+The template includes 5 optional feature groups. By default, all features are included.
+
+| Feature | Description | Skip Flag |
+|---------|-------------|-----------|
+| **Inertia Rails** | React + TypeScript + Tailwind + shadcn/ui + Vite | `--skip-inertia` |
+| **Multi-staging** | Kamal + Docker + multi-DB + staging/production | `--skip-multistaging` |
+| **Authentication** | authentication-zero gem | `--skip-auth` |
+| **Developer Tools** | RuboCop + Annotaterb + Zellij + Letter Opener | `--skip-devtools` |
+| **Trailblazer** | Business logic organization framework | `--skip-trailblazer` |
+
+### Usage Examples
+
+```bash
+# Interactive mode - prompts for each feature
+rails new myapp --skip-js -d=postgresql -m=https://rails.mrz.sh/t
+
+# Accept all features (no prompts)
+rails new myapp --skip-js -d=postgresql -m=https://rails.mrz.sh/t -y
+
+# Skip specific features (auto-accepts the rest)
+rails new myapp --skip-js -d=postgresql -m=https://rails.mrz.sh/t --skip-auth
+
+# Skip multiple features
+rails new myapp --skip-js -d=postgresql -m=https://rails.mrz.sh/t --skip-auth --skip-trailblazer
+
+# With curl installer
+curl -fsSL rails.mrz.sh | sh -s myapp --skip-inertia --skip-devtools
+```
+
 ## What's Included
 
 ### Frontend Stack

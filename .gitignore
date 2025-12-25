@@ -1,6 +1,9 @@
 # Build output
 dist/
 
+# Wrangler
+.wrangler/
+
 # Template testing - ignore test projects
 test_app/
 tmp_test/

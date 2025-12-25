@@ -5,6 +5,50 @@
 REMOTE_ROOT = "https://rails.mrz.sh/template"
 LOCAL_ROOT = File.join(__dir__, "template")
 
+# Feature groups that users can select during template generation
+FEATURE_GROUPS = {
+  inertia: {
+    name: 'Inertia Rails',
+    desc: 'React + TypeScript + Tailwind + shadcn/ui + Vite',
+    skip_flag: '--skip-inertia'
+  },
+  multistaging: {
+    name: 'Multi-staging Environment',
+    desc: 'Kamal deploy + Docker + multi-DB + staging/production configs',
+    skip_flag: '--skip-multistaging'
+  },
+  auth: {
+    name: 'Authentication',
+    desc: 'authentication-zero gem',
+    skip_flag: '--skip-auth'
+  },
+  devtools: {
+    name: 'Developer Tools',
+    desc: 'RuboCop + Annotaterb + Zellij + Letter Opener',
+    skip_flag: '--skip-devtools'
+  },
+  trailblazer: {
+    name: 'Trailblazer',
+    desc: 'Business logic organization framework',
+    skip_flag: '--skip-trailblazer'
+  }
+}.freeze
+
+# Parse command-line options
+def parse_options
+  skip_flags = FEATURE_GROUPS.keys.each_with_object({}) do |key, hash|
+    hash[key] = ARGV.include?(FEATURE_GROUPS[key][:skip_flag])
+  end
+
+  # If any --skip-* flag is present, auto-accept all other features
+  has_skip_flags = skip_flags.values.any?
+
+  {
+    accept_all: has_skip_flags || ARGV.include?('-y') || ARGV.include?('--yes'),
+    skip: skip_flags
+  }
+end
+
 def remote?
   !File.exist?(LOCAL_ROOT)
 end
@@ -26,44 +70,86 @@ def fetch_directory(source, destination, files)
   end
 end
 
+def select_features
+  opts = parse_options
+
+  # Show available flags in help mode
+  if ARGV.include?('--help') || ARGV.include?('-h')
+    say "\n=== Jumbo Template Options ===", :blue
+    say "  -y, --yes              Accept all features without prompting"
+    FEATURE_GROUPS.each do |_key, info|
+      say "  #{info[:skip_flag].ljust(22)} Skip #{info[:name]} (auto-accepts others)"
+    end
+    say "\nExamples:"
+    say "  rails new myapp -m template.rb                    # Interactive mode"
+    say "  rails new myapp -m template.rb -y                 # Accept all features"
+    say "  rails new myapp -m template.rb --skip-auth        # All except auth"
+    say "  rails new myapp -m template.rb --skip-inertia --skip-trailblazer"
+    say ""
+    return FEATURE_GROUPS.keys.each_with_object({}) { |k, h| h[k] = false }
+  end
+
+  selected = {}
+
+  if opts[:accept_all]
+    # Accept all features except explicitly skipped ones
+    skipped_names = opts[:skip].select { |_, v| v }.keys.map { |k| FEATURE_GROUPS[k][:name] }
+    if skipped_names.any?
+      say "\n=== Installing features (skipping: #{skipped_names.join(', ')}) ===", :blue
+    else
+      say "\n=== Installing all features ===", :blue
+    end
+
+    FEATURE_GROUPS.each do |key, info|
+      if opts[:skip][key]
+        say "  ✗ #{info[:name]}", :yellow
+        selected[key] = false
+      else
+        say "  ✓ #{info[:name]}", :green
+        selected[key] = true
+      end
+    end
+    say ""
+  else
+    # Interactive mode - prompt for each feature
+    say "\n=== Select Feature Groups ===", :blue
+    say "Choose which features to include in your app:\n", :white
+
+    FEATURE_GROUPS.each do |key, info|
+      selected[key] = yes?("Include #{info[:name]}? (#{info[:desc]})")
+    end
+    say "\n", :white
+  end
+
+  selected
+end
+
 def add_gems
-  # Inertia.js for building modern single-page apps
-  gem 'inertia_rails', '~> 3.0'
+  # Inertia Rails group
+  if @features[:inertia]
+    gem 'inertia_rails', '~> 3.0'
+    gem 'js-routes'
+    gem 'local_time'
+  end
 
-  # Trailblazer for business logic organization
-  gem 'trailblazer-rails'
+  # Trailblazer group
+  gem 'trailblazer-rails' if @features[:trailblazer]
 
-  # Local time conversion in the browser
-  gem 'local_time'
+  # Authentication group
+  gem 'authentication-zero' if @features[:auth]
 
-  # Authentication
-  gem 'authentication-zero'
-
-  # JavaScript routes for frontend
-  gem 'js-routes'
-
-  gem_group :development do
-    # Quick PostgreSQL database reset
-    gem 'pgreset'
-
-    # Annotate models with schema information
-    gem 'annotaterb'
-
-    # Preview emails in browser
-    gem 'letter_opener'
-
-    # Ruby language server for IDE support
-    gem 'solargraph'
-    gem 'solargraph-rails'
-
-    # Ruby type signatures
-    gem 'rbs'
-
-    # Ruby code linter and formatter
-    gem 'rubocop'
-
-    # Database migration safety checks
-    gem 'good_migrations'
+  # Developer Tools group
+  if @features[:devtools]
+    gem_group :development do
+      gem 'pgreset'
+      gem 'annotaterb'
+      gem 'letter_opener'
+      gem 'solargraph'
+      gem 'solargraph-rails'
+      gem 'rbs'
+      gem 'rubocop'
+      gem 'good_migrations'
+    end
   end
 end
 
@@ -334,6 +420,45 @@ def setup_database
   say 'Database configuration created with multi-database support', :green
 end
 
+def setup_database_simple
+  say 'Setting up simple database configuration...', :blue
+
+  app_name_value = app_const_base.underscore
+  db_name = app_name_value.gsub('/', '_')
+
+  database_yml = <<~DATABASE
+    default: &default
+      adapter: postgresql
+      encoding: unicode
+      pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+
+    development:
+      <<: *default
+      database: #{db_name}_development
+      host: localhost
+      username: postgres
+      password: postgres
+
+    test:
+      <<: *default
+      database: #{db_name}_test
+      host: localhost
+      username: postgres
+      password: postgres
+
+    production:
+      <<: *default
+      database: #{db_name}_production
+      host: <%= ENV.fetch("DATABASE_HOST", "localhost") %>
+      username: <%= ENV.fetch("DATABASE_USERNAME", "postgres") %>
+      password: <%= ENV["DATABASE_PASSWORD"] %>
+  DATABASE
+
+  remove_file 'config/database.yml'
+  create_file 'config/database.yml', database_yml
+  say 'Simple database configuration created', :green
+end
+
 def setup_multi_db_migrations
   say 'Setting up multi-database migrations...', :blue
 
@@ -498,51 +623,80 @@ def setup_credentials
 end
 
 def main
+  @features = select_features
   add_gems
 
   after_bundle do
-    setup_inertia
-    setup_shadcn
-    ensure_bun_package_manager
-    setup_procfile
-    copy_rubocop_config
-    copy_env_example
-    copy_dockerfile
-    copy_config_files
-    setup_deploy_configs
-    setup_kamal_secrets
-    setup_zellij
-    setup_bin_scripts
-    setup_database
-    setup_multi_db_migrations
-    setup_seeds
-    configure_application
-    configure_development_environment
-    configure_production_environment
-    create_staging_environment
-    setup_credentials
-    setup_annotaterb
+    # Inertia Rails group
+    if @features[:inertia]
+      setup_inertia
+      setup_shadcn
+      ensure_bun_package_manager
+      setup_procfile
+    end
 
+    # Multi-staging Environment group
+    if @features[:multistaging]
+      copy_dockerfile
+      copy_config_files
+      setup_deploy_configs
+      setup_kamal_secrets
+      setup_database
+      setup_multi_db_migrations
+      setup_seeds
+      configure_production_environment
+      create_staging_environment
+      setup_credentials
+    else
+      setup_database_simple
+    end
+
+    # Developer Tools group
+    if @features[:devtools]
+      copy_rubocop_config
+      copy_env_example
+      setup_zellij
+      setup_bin_scripts
+      setup_annotaterb
+      configure_development_environment
+    end
+
+    # Always run
+    configure_application
+
+    # Summary
     say
     say 'Jumbo template successfully applied!', :green
     say
-    say 'Gems installed:', :blue
-    say '  • inertia_rails (3.x) - Modern SPA framework'
-    say '  • pgreset - Quick database reset tool'
-    say '  • annotaterb - Model annotations'
-    say '  • letter_opener - Email previews'
-    say
-    say 'Inertia.js configured with:', :blue
-    say '  • React + TypeScript'
-    say '  • Tailwind CSS'
-    say '  • Vite bundler (via Inertia installer)'
-    say '  • Bun package manager'
-    say '  • Example page included'
-    say
-    say 'Deployment:', :blue
-    say '  • Dockerfile for production (multi-stage build)'
-    say '  • Kamal deploy configurations'
-    say
+
+    if @features.values.any?
+      say 'Feature groups installed:', :blue
+
+      if @features[:inertia]
+        say '  • Inertia Rails: React + TypeScript + Tailwind + shadcn/ui'
+      end
+
+      if @features[:multistaging]
+        say '  • Multi-staging: Kamal + Docker + staging/production configs'
+      end
+
+      if @features[:auth]
+        say '  • Authentication: authentication-zero (run generator to setup)'
+      end
+
+      if @features[:devtools]
+        say '  • Developer Tools: RuboCop, Annotaterb, Zellij, Letter Opener'
+      end
+
+      if @features[:trailblazer]
+        say '  • Trailblazer: Business logic framework'
+      end
+
+      say
+    else
+      say 'No feature groups selected. Basic Rails app created.', :yellow
+      say
+    end
   end
 end
 

@@ -136,7 +136,7 @@
         position: relative;
         z-index: 1;
         text-align: center;
-        max-width: 700px;
+        max-width: 800px;
         width: 100%;
       }
 
@@ -355,27 +355,121 @@
 
       /* Features */
       .features {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
         gap: 0.75rem;
-        margin-bottom: 2.5rem;
+        margin-bottom: 2rem;
+        text-align: left;
+        width: 100%;
+        margin-left: auto;
+        margin-right: auto;
       }
 
-      .feature {
+      .features-header {
         font-family: "JetBrains Mono", monospace;
         font-size: 0.7rem;
         color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 0.5rem;
+        text-align: center;
+        grid-column: 1 / -1;
+      }
+
+      @media (max-width: 600px) {
+        .features {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .feature {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.8rem;
+        color: var(--text-muted);
         background: var(--bg-surface);
         border: 1px solid var(--border);
-        padding: 0.4rem 0.9rem;
-        border-radius: 100px;
+        padding: 0.6rem 1rem;
+        border-radius: 8px;
+        cursor: pointer;
         transition: all 0.2s;
+        user-select: none;
       }
 
       .feature:hover {
         border-color: var(--text-muted);
+      }
+
+      .feature.checked {
+        border-color: var(--terminal-green);
         color: var(--text-primary);
+      }
+
+      .feature.checked .feature-checkbox {
+        background: var(--terminal-green);
+        border-color: var(--terminal-green);
+      }
+
+      .feature.checked .feature-checkbox::after {
+        opacity: 1;
+      }
+
+      .feature-checkbox {
+        width: 16px;
+        height: 16px;
+        border: 2px solid var(--text-muted);
+        border-radius: 4px;
+        position: relative;
+        transition: all 0.2s;
+        flex-shrink: 0;
+      }
+
+      .feature-checkbox::after {
+        content: "✓";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 10px;
+        color: var(--bg-deep);
+        font-weight: bold;
+        opacity: 0;
+        transition: opacity 0.2s;
+      }
+
+      .feature-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.1rem;
+        flex: 1;
+      }
+
+      .feature-name {
+        color: inherit;
+        transition: color 0.2s;
+      }
+
+      .feature.checked .feature-name {
+        color: var(--terminal-green);
+      }
+
+      .feature-desc {
+        font-size: 0.65rem;
+        color: var(--text-muted);
+        opacity: 0.7;
+      }
+
+      .feature-flag {
+        font-size: 0.6rem;
+        color: var(--terminal-amber);
+        opacity: 0;
+        transition: opacity 0.2s;
+      }
+
+      .feature:not(.checked) .feature-flag {
+        opacity: 0.8;
       }
 
       /* Footer */
@@ -479,13 +573,52 @@
       </div>
 
       <div class="features">
-        <span class="feature">Inertia.js + React</span>
-        <span class="feature">TypeScript</span>
-        <span class="feature">Tailwind CSS</span>
-        <span class="feature">shadcn/ui</span>
-        <span class="feature">Bun</span>
-        <span class="feature">Kamal Deploy</span>
-        <span class="feature">Solid Queue</span>
+        <div class="features-header">Feature Groups (all included by default)</div>
+
+        <div class="feature checked" data-flag="--skip-inertia" onclick="toggleFeature(this)">
+          <div class="feature-checkbox"></div>
+          <div class="feature-info">
+            <span class="feature-name">Inertia Rails</span>
+            <span class="feature-desc">React + TypeScript + Tailwind + shadcn/ui + Vite</span>
+          </div>
+          <span class="feature-flag">--skip-inertia</span>
+        </div>
+
+        <div class="feature checked" data-flag="--skip-multistaging" onclick="toggleFeature(this)">
+          <div class="feature-checkbox"></div>
+          <div class="feature-info">
+            <span class="feature-name">Multi-staging</span>
+            <span class="feature-desc">Kamal + Docker + multi-DB + staging/production</span>
+          </div>
+          <span class="feature-flag">--skip-multistaging</span>
+        </div>
+
+        <div class="feature checked" data-flag="--skip-auth" onclick="toggleFeature(this)">
+          <div class="feature-checkbox"></div>
+          <div class="feature-info">
+            <span class="feature-name">Authentication</span>
+            <span class="feature-desc">authentication-zero gem</span>
+          </div>
+          <span class="feature-flag">--skip-auth</span>
+        </div>
+
+        <div class="feature checked" data-flag="--skip-devtools" onclick="toggleFeature(this)">
+          <div class="feature-checkbox"></div>
+          <div class="feature-info">
+            <span class="feature-name">Developer Tools</span>
+            <span class="feature-desc">RuboCop + Annotaterb + Zellij + Letter Opener</span>
+          </div>
+          <span class="feature-flag">--skip-devtools</span>
+        </div>
+
+        <div class="feature checked" data-flag="--skip-trailblazer" onclick="toggleFeature(this)">
+          <div class="feature-checkbox"></div>
+          <div class="feature-info">
+            <span class="feature-name">Trailblazer</span>
+            <span class="feature-desc">Business logic organization framework</span>
+          </div>
+          <span class="feature-flag">--skip-trailblazer</span>
+        </div>
       </div>
 
       <div class="footer">
@@ -494,24 +627,48 @@
     </div>
 
     <script>
+      function getSkipFlags() {
+        const flags = [];
+        document.querySelectorAll('.feature:not(.checked)').forEach(el => {
+          flags.push(el.dataset.flag);
+        });
+        return flags;
+      }
+
+      function toggleFeature(el) {
+        el.classList.toggle('checked');
+        updateCommands();
+      }
+
       function updateCommands() {
         const name = document.getElementById("projectName").value || "myapp";
+        const skipFlags = getSkipFlags();
+        const skipStr = skipFlags.length > 0 ? ' ' + skipFlags.join(' ') : '';
 
-        document.getElementById("quickCommand").innerHTML =
-          `curl -fsSL rails.mrz.sh | sh -s <span class="highlight">${name}</span>`;
+        // Quick command with skip flags
+        if (skipFlags.length > 0) {
+          document.getElementById("quickCommand").innerHTML =
+            `curl -fsSL rails.mrz.sh | sh -s <span class="highlight">${name}</span>${skipStr}`;
+        } else {
+          document.getElementById("quickCommand").innerHTML =
+            `curl -fsSL rails.mrz.sh | sh -s <span class="highlight">${name}</span>`;
+        }
 
+        // Full command with skip flags
         document.getElementById("fullCommand").innerHTML =
-          `rails new <span class="highlight">${name}</span> --skip-js -d=postgresql -m=https://rails.mrz.sh/t`;
+          `rails new <span class="highlight">${name}</span> --skip-js -d=postgresql -m=https://rails.mrz.sh/t${skipStr}`;
       }
 
       function copyCommand(type) {
         const name = document.getElementById("projectName").value || "myapp";
+        const skipFlags = getSkipFlags();
+        const skipStr = skipFlags.length > 0 ? ' ' + skipFlags.join(' ') : '';
         let command;
 
         if (type === "quick") {
-          command = `curl -fsSL rails.mrz.sh | sh -s ${name}`;
+          command = `curl -fsSL rails.mrz.sh | sh -s ${name}${skipStr}`;
         } else {
-          command = `rails new ${name} --skip-js -d=postgresql -m=https://rails.mrz.sh/t`;
+          command = `rails new ${name} --skip-js -d=postgresql -m=https://rails.mrz.sh/t${skipStr}`;
         }
 
         navigator.clipboard.writeText(command);

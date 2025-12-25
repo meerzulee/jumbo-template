@@ -29,7 +29,7 @@ layout {
       }
       pane {
         name "dev server"
-        command "bin/dev"
+        command "sh bin/dev"
       }
     }
   }
