@@ -40,11 +40,8 @@ def parse_options
     hash[key] = ARGV.include?(FEATURE_GROUPS[key][:skip_flag])
   end
 
-  # If any --skip-* flag is present, auto-accept all other features
-  has_skip_flags = skip_flags.values.any?
-
   {
-    accept_all: has_skip_flags || ARGV.include?('-y') || ARGV.include?('--yes'),
+    interactive: ARGV.include?('-i') || ARGV.include?('--interactive'),
     skip: skip_flags
   }
 end
@@ -76,13 +73,13 @@ def select_features
   # Show available flags in help mode
   if ARGV.include?('--help') || ARGV.include?('-h')
     say "\n=== Jumbo Template Options ===", :blue
-    say "  -y, --yes              Accept all features without prompting"
+    say "  -i, --interactive      Prompt for each feature"
     FEATURE_GROUPS.each do |_key, info|
-      say "  #{info[:skip_flag].ljust(22)} Skip #{info[:name]} (auto-accepts others)"
+      say "  #{info[:skip_flag].ljust(22)} Skip #{info[:name]}"
     end
     say "\nExamples:"
-    say "  rails new myapp -m template.rb                    # Interactive mode"
-    say "  rails new myapp -m template.rb -y                 # Accept all features"
+    say "  rails new myapp -m template.rb                    # All features (default)"
+    say "  rails new myapp -m template.rb -i                 # Interactive mode"
     say "  rails new myapp -m template.rb --skip-auth        # All except auth"
     say "  rails new myapp -m template.rb --skip-inertia --skip-trailblazer"
     say ""
@@ -91,8 +88,18 @@ def select_features
 
   selected = {}
 
-  if opts[:accept_all]
-    # Accept all features except explicitly skipped ones
+  if opts[:interactive]
+    # Interactive mode - prompt for each feature (default: yes)
+    say "\n=== Select Feature Groups ===", :blue
+    say "Choose which features to include in your app (press Enter to accept):\n", :white
+
+    FEATURE_GROUPS.each do |key, info|
+      response = ask("Include #{info[:name]}? (#{info[:desc]}) [Y/n]")
+      selected[key] = response.blank? || response.match?(/^y/i)
+    end
+    say "\n", :white
+  else
+    # Default: accept all features except explicitly skipped ones
     skipped_names = opts[:skip].select { |_, v| v }.keys.map { |k| FEATURE_GROUPS[k][:name] }
     if skipped_names.any?
       say "\n=== Installing features (skipping: #{skipped_names.join(', ')}) ===", :blue
@@ -110,15 +117,6 @@ def select_features
       end
     end
     say ""
-  else
-    # Interactive mode - prompt for each feature
-    say "\n=== Select Feature Groups ===", :blue
-    say "Choose which features to include in your app:\n", :white
-
-    FEATURE_GROUPS.each do |key, info|
-      selected[key] = yes?("Include #{info[:name]}? (#{info[:desc]})")
-    end
-    say "\n", :white
   end
 
   selected
