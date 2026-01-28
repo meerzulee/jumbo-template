@@ -1,72 +1,72 @@
 #!/usr/bin/env bash
+#
+# ze - Zellij session launcher for Rails projects
+#
+# Usage: bin/ze [session_name] [layout_file]
+#
 set -euo pipefail
 
-if ! command -v zellij >/dev/null 2>&1; then
-  echo "Error: zellij is not installed or not in PATH." >&2
-  exit 127
-fi
-
-# Project root/name
-SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
-PROJECT_ROOT="$(cd -- "$SCRIPT_DIR/.." &>/dev/null && pwd)"
+# --- Configuration ---
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 PROJECT_NAME="$(basename "$PROJECT_ROOT")"
 
-# bin/zellij [session_name] [layout_file]
-SESSION_NAME="${1:-$PROJECT_NAME}"
-DEFAULT_LAYOUT="$PROJECT_ROOT/.zellij/layout.kdl"
-LAYOUT_PATH="${2:-$DEFAULT_LAYOUT}"
+SESSION="${1:-$PROJECT_NAME}"
+LAYOUT="${2:-$PROJECT_ROOT/.zellij/layout.kdl}"
 
-# Resolve relative layout from project root
-[[ "$LAYOUT_PATH" = /* ]] || LAYOUT_PATH="$PROJECT_ROOT/$LAYOUT_PATH"
+# Resolve relative paths
+[[ "$LAYOUT" = /* ]] || LAYOUT="$PROJECT_ROOT/$LAYOUT"
 
-# Autocreate a simple default layout if missing at default path
-if [[ "$LAYOUT_PATH" == "$DEFAULT_LAYOUT" ]] && [[ ! -f "$LAYOUT_PATH" ]]; then
-  mkdir -p "$PROJECT_ROOT/.zellij"
-  cat >"$LAYOUT_PATH" <<'KDL'
+# --- Functions ---
+die() { echo "Error: $1" >&2; exit "${2:-1}"; }
+
+create_default_layout() {
+  mkdir -p "$(dirname "$LAYOUT")"
+  cat > "$LAYOUT" << 'EOF'
 layout {
-  tab name="editor" {
-    pane {
-      command "bash"
-      args "-lc" "${EDITOR:-nvim} ."
-    }
+  tab name="editor" focus=true {
+    pane command="bash" { args "-lc" "${EDITOR:-nvim} ."; }
   }
   tab name="server" {
-    pane
+    pane command="bash" { args "-lc" "bin/dev"; }
+  }
+  tab name="console" {
+    pane command="bash" { args "-lc" "bin/rails console"; }
+  }
+  tab name="git" {
+    pane command="bash" { args "-lc" "lazygit 2>/dev/null || git status"; }
   }
 }
-KDL
-  echo "Created $LAYOUT_PATH" >&2
+EOF
+  echo "Created: $LAYOUT" >&2
+}
+
+find_session() {
+  local sessions
+  sessions=$(zellij list-sessions 2>/dev/null) || return 1
+  
+  # Exact match
+  echo "$sessions" | grep -Fx "$SESSION" && return 0
+  
+  # Prefix match (session-xxx or session_xxx)
+  local matches
+  matches=$(echo "$sessions" | grep -E "^${SESSION}[-_]" || true)
+  [[ $(echo "$matches" | grep -c .) -eq 1 ]] && echo "$matches"
+}
+
+# --- Main ---
+command -v zellij &>/dev/null || die "zellij is not installed" 127
+
+# Create default layout if missing
+[[ -f "$LAYOUT" ]] || create_default_layout
+
+# Already inside Zellij? Add tabs to current session
+[[ -z "${ZELLIJ:-}" ]] || exec zellij action new-tab --layout "$LAYOUT"
+
+# Try to attach to existing session
+if match=$(find_session); then
+  exec zellij attach "$match"
 fi
 
-# Already in a Zellij session? Just open the layout as new tab(s) in it.
-if [[ "${ZELLIJ:-}" != "" ]]; then
-  exec zellij --layout "$LAYOUT_PATH" # adds new tab(s) to current session
-fi
-
-# Collect current sessions (bash 3.x compatible, no mapfile)
-SESSIONS=()
-while IFS= read -r line; do
-  [[ -n "$line" ]] && SESSIONS+=("$line")
-done < <(zellij list-sessions 2>/dev/null || true)
-
-# If exact match exists, attach
-if printf '%s\n' "${SESSIONS[@]}" | grep -Fxq "$SESSION_NAME"; then
-  exec zellij attach "$SESSION_NAME"
-fi
-
-# If a single prefixed match like "<name>-something" exists, attach to it
-PREFIX_MATCHES=()
-for s in "${SESSIONS[@]}"; do
-  [[ $s == "$SESSION_NAME"-* || $s == "$SESSION_NAME"_* ]] && PREFIX_MATCHES+=("$s")
-done
-
-if [[ ${#PREFIX_MATCHES[@]} -eq 1 ]]; then
-  exec zellij attach "${PREFIX_MATCHES[0]}"
-fi
-
-# Otherwise: create new named session with the layout.
-# Place --layout before 'attach' so it's treated as a global flag.
-zellij --layout "$LAYOUT_PATH" attach --create "$SESSION_NAME" 2>/dev/null ||
-  zellij --layout "$LAYOUT_PATH" attach -c "$SESSION_NAME" 2>/dev/null ||
-  exec zellij --new-session-with-layout "$LAYOUT_PATH"
-
+# Create new session
+exec zellij --layout "$LAYOUT" attach --create "$SESSION"
