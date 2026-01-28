@@ -25,16 +25,24 @@ create_default_layout() {
   cat > "$LAYOUT" << 'EOF'
 layout {
   tab name="editor" focus=true {
-    pane command="bash" { args "-lc" "${EDITOR:-nvim} ."; }
+    pane command="bash" {
+      args "-lc" "${EDITOR:-nvim} ."
+    }
   }
   tab name="server" {
-    pane command="bash" { args "-lc" "bin/dev"; }
+    pane command="bash" {
+      args "-lc" "bin/dev"
+    }
   }
   tab name="console" {
-    pane command="bash" { args "-lc" "bin/rails console"; }
+    pane command="bash" {
+      args "-lc" "bin/rails console"
+    }
   }
   tab name="git" {
-    pane command="bash" { args "-lc" "lazygit 2>/dev/null || git status"; }
+    pane command="bash" {
+      args "-lc" "lazygit 2>/dev/null || git status"
+    }
   }
 }
 EOF
