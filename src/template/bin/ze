@@ -43,8 +43,11 @@ if [[ "${ZELLIJ:-}" != "" ]]; then
   exec zellij --layout "$LAYOUT_PATH" # adds new tab(s) to current session
 fi
 
-# Collect current sessions
-mapfile -t SESSIONS < <(zellij list-sessions 2>/dev/null || true)
+# Collect current sessions (bash 3.x compatible, no mapfile)
+SESSIONS=()
+while IFS= read -r line; do
+  [[ -n "$line" ]] && SESSIONS+=("$line")
+done < <(zellij list-sessions 2>/dev/null || true)
 
 # If exact match exists, attach
 if printf '%s\n' "${SESSIONS[@]}" | grep -Fxq "$SESSION_NAME"; then
