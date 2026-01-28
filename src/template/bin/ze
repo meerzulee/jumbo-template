@@ -44,18 +44,30 @@ EOF
 find_session() {
   local sessions
   sessions=$(zellij list-sessions 2>/dev/null) || return 1
-  
+  [[ -n "$sessions" ]] || return 1
+
   # Exact match
-  echo "$sessions" | grep -Fx "$SESSION" && return 0
-  
+  if printf '%s\n' "$sessions" | grep -qFx "$SESSION" 2>/dev/null; then
+    echo "$SESSION"
+    return 0
+  fi
+
   # Prefix match (session-xxx or session_xxx)
-  local matches
-  matches=$(echo "$sessions" | grep -E "^${SESSION}[-_]" || true)
-  [[ $(echo "$matches" | grep -c .) -eq 1 ]] && echo "$matches"
+  local matches count
+  matches=$(printf '%s\n' "$sessions" | grep -E "^${SESSION}[-_]" 2>/dev/null || true)
+  [[ -n "$matches" ]] || return 1
+
+  count=$(printf '%s\n' "$matches" | wc -l | tr -d ' ')
+  if [[ "$count" -eq 1 ]]; then
+    echo "$matches"
+    return 0
+  fi
+
+  return 1
 }
 
 # --- Main ---
-command -v zellij &>/dev/null || die "zellij is not installed" 127
+command -v zellij >/dev/null 2>&1 || die "zellij is not installed" 127
 
 # Create default layout if missing
 [[ -f "$LAYOUT" ]] || create_default_layout
