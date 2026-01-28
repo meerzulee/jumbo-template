@@ -58,7 +58,7 @@ for s in "${SESSIONS[@]}"; do
 done
 
 if [[ ${#PREFIX_MATCHES[@]} -eq 1 ]]; then
-  exec zellij attach "${PREFIX_MATCHES[0]}"arrgs
+  exec zellij attach "${PREFIX_MATCHES[0]}"
 fi
 
 # Otherwise: create new named session with the layout.

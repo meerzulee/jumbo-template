@@ -2,8 +2,10 @@
 # Usage (local):  rails new {project_name} --database=postgresql --skip-javascript -m t
 # Usage (remote): rails new {project_name} --database=postgresql --skip-javascript -m https://rails.mrz.sh/t
 
-REMOTE_ROOT = "https://rails.mrz.sh/template"
-LOCAL_ROOT = File.join(__dir__, "template")
+JUMBO_VERSION = '0.1.0'
+
+REMOTE_ROOT = 'https://rails.mrz.sh/template'
+LOCAL_ROOT = File.join(__dir__, 'template')
 
 # Feature groups that users can select during template generation
 FEATURE_GROUPS = {
@@ -54,16 +56,20 @@ def fetch_file(source, destination, options = {})
   if remote?
     get "#{REMOTE_ROOT}/#{source}", destination, options
   else
-    copy_file File.join(LOCAL_ROOT, source), destination, options
+    content = File.read(File.join(LOCAL_ROOT, source))
+    create_file destination, content, options
   end
 end
 
 def fetch_directory(source, destination, files)
+  empty_directory destination
   if remote?
-    empty_directory destination
     files.each { |f| get "#{REMOTE_ROOT}/#{source}/#{f}", "#{destination}/#{f}" }
   else
-    directory File.join(LOCAL_ROOT, source), destination
+    files.each do |f|
+      content = File.read(File.join(LOCAL_ROOT, source, f))
+      create_file "#{destination}/#{f}", content
+    end
   end
 end
 
@@ -73,16 +79,16 @@ def select_features
   # Show available flags in help mode
   if ARGV.include?('--help') || ARGV.include?('-h')
     say "\n=== Jumbo Template Options ===", :blue
-    say "  -i, --interactive      Prompt for each feature"
+    say '  -i, --interactive      Prompt for each feature'
     FEATURE_GROUPS.each do |_key, info|
       say "  #{info[:skip_flag].ljust(22)} Skip #{info[:name]}"
     end
     say "\nExamples:"
-    say "  rails new myapp -m template.rb                    # All features (default)"
-    say "  rails new myapp -m template.rb -i                 # Interactive mode"
-    say "  rails new myapp -m template.rb --skip-auth        # All except auth"
-    say "  rails new myapp -m template.rb --skip-inertia --skip-trailblazer"
-    say ""
+    say '  rails new myapp -m template.rb                    # All features (default)'
+    say '  rails new myapp -m template.rb -i                 # Interactive mode'
+    say '  rails new myapp -m template.rb --skip-auth        # All except auth'
+    say '  rails new myapp -m template.rb --skip-inertia --skip-trailblazer'
+    say ''
     return FEATURE_GROUPS.keys.each_with_object({}) { |k, h| h[k] = false }
   end
 
@@ -116,7 +122,7 @@ def select_features
         selected[key] = true
       end
     end
-    say ""
+    say ''
   end
 
   selected
@@ -137,17 +143,17 @@ def add_gems
   gem 'authentication-zero' if @features[:auth]
 
   # Developer Tools group
-  if @features[:devtools]
-    gem_group :development do
-      gem 'pgreset'
-      gem 'annotaterb'
-      gem 'letter_opener'
-      gem 'solargraph'
-      gem 'solargraph-rails'
-      gem 'rbs'
-      gem 'rubocop'
-      gem 'good_migrations'
-    end
+  return unless @features[:devtools]
+
+  gem_group :development do
+    gem 'pgreset'
+    gem 'annotaterb'
+    gem 'letter_opener'
+    gem 'solargraph'
+    gem 'solargraph-rails'
+    gem 'rbs'
+    gem 'rubocop'
+    gem 'good_migrations'
   end
 end
 
@@ -156,10 +162,10 @@ def setup_inertia
   rails_command 'generate inertia:install --framework=react --typescript --package-manager=bun --tailwind --vite --verbose --example-page --force'
 
   # Workaround for vite_ruby bundler bug (uses deprecated --path flag)
-  unless File.exist?('bin/vite')
-    say 'Creating bin/vite binstub...', :yellow
-    run 'bundle binstubs vite_ruby --force'
-  end
+  return if File.exist?('bin/vite')
+
+  say 'Creating bin/vite binstub...', :yellow
+  run 'bundle binstubs vite_ruby --force'
 end
 
 def setup_shadcn
@@ -308,13 +314,13 @@ def setup_zellij
   say 'Setting up Zellij configuration...', :blue
   fetch_directory '.zellij', '.zellij', ['layout.kdl']
   fetch_file 'bin/ze', 'bin/ze', force: true
-  chmod 'bin/ze', 0755
+  chmod 'bin/ze', 0o755
 end
 
 def setup_bin_scripts
   say 'Setting up custom bin scripts...', :blue
   fetch_file 'bin/db-reset', 'bin/db-reset', force: true
-  chmod 'bin/db-reset', 0755
+  chmod 'bin/db-reset', 0o755
 end
 
 def setup_database
@@ -588,18 +594,19 @@ def setup_credentials
     say 'Moved default credentials to development environment', :green
   else
     # Create development credentials if they don't exist
-    secret = run("bin/rails secret", capture: true).strip
+    secret = run('bin/rails secret', capture: true).strip
     credentials_content = "secret_key_base: #{secret}\n"
-    tmp_file = "tmp_credentials_development.yml"
+    tmp_file = 'tmp_credentials_development.yml'
     File.write(tmp_file, credentials_content)
-    run "EDITOR='cat #{tmp_file} >' bin/rails credentials:edit --environment development > /dev/null 2>&1", capture: true
+    run "EDITOR='cat #{tmp_file} >' bin/rails credentials:edit --environment development > /dev/null 2>&1",
+        capture: true
     remove_file tmp_file
   end
 
   # Create staging and production credentials with secret_key_base
   %w[staging production].each do |env|
     # Generate a secret key
-    secret = run("bin/rails secret", capture: true).strip
+    secret = run('bin/rails secret', capture: true).strip
 
     # Create a temporary file with the credentials content
     credentials_content = "secret_key_base: #{secret}\n"
@@ -664,31 +671,21 @@ def main
 
     # Summary
     say
-    say 'Jumbo template successfully applied!', :green
+    say "Jumbo v#{JUMBO_VERSION} template successfully applied!", :green
     say
 
     if @features.values.any?
       say 'Feature groups installed:', :blue
 
-      if @features[:inertia]
-        say '  • Inertia Rails: React + TypeScript + Tailwind + shadcn/ui'
-      end
+      say '  • Inertia Rails: React + TypeScript + Tailwind + shadcn/ui' if @features[:inertia]
 
-      if @features[:multistaging]
-        say '  • Multi-staging: Kamal + Docker + staging/production configs'
-      end
+      say '  • Multi-staging: Kamal + Docker + staging/production configs' if @features[:multistaging]
 
-      if @features[:auth]
-        say '  • Authentication: authentication-zero (run generator to setup)'
-      end
+      say '  • Authentication: authentication-zero (run generator to setup)' if @features[:auth]
 
-      if @features[:devtools]
-        say '  • Developer Tools: RuboCop, Annotaterb, Zellij, Letter Opener'
-      end
+      say '  • Developer Tools: RuboCop, Annotaterb, Zellij, Letter Opener' if @features[:devtools]
 
-      if @features[:trailblazer]
-        say '  • Trailblazer: Business logic framework'
-      end
+      say '  • Trailblazer: Business logic framework' if @features[:trailblazer]
 
       say
     else

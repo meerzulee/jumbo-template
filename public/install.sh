@@ -6,7 +6,7 @@ echo "  ╦╦ ╦╔╦╗╔╗ ╔═╗"
 echo "  ║║ ║║║║╠╩╗║ ║"
 echo " ╚╝╚═╝╩ ╩╚═╝╚═╝"
 echo ""
-echo "  Rails Template"
+echo "  Rails Template v0.1.0"
 echo ""
 
 APP_NAME="$1"
