@@ -472,12 +472,66 @@
         opacity: 0.8;
       }
 
-      /* Sub-modules under Operations */
-      .modules {
+      /* Operations + add-on modules group (spans both grid columns) */
+      .ops-group {
+        grid-column: 1 / -1;
         display: flex;
         flex-direction: column;
+        gap: 0.6rem;
+      }
+
+      .ops-modules {
+        position: relative;
+        padding: 0.25rem 0 0 2.5rem;
+        transition: opacity 0.2s;
+      }
+
+      .ops-modules::before {
+        content: "└─";
+        position: absolute;
+        left: 0.85rem;
+        top: 0.05rem;
+        color: var(--terminal-green);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 1rem;
+        opacity: 0.45;
+      }
+
+      .modules-label {
+        display: block;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.6rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        margin-bottom: 0.5rem;
+        opacity: 0.65;
+      }
+
+      .modules-label code {
+        color: var(--terminal-amber);
+        opacity: 0.8;
+        font-size: 0.6rem;
+      }
+
+      .modules {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
         gap: 0.4rem;
-        margin: -0.3rem 0 0 1.75rem;
+      }
+
+      .ops-modules.disabled {
+        opacity: 0.3;
+        pointer-events: none;
+      }
+
+      @media (max-width: 600px) {
+        .modules {
+          grid-template-columns: 1fr;
+        }
+        .ops-modules {
+          padding-left: 1.5rem;
+        }
       }
 
       .module {
@@ -663,35 +717,40 @@
           <span class="feature-flag">--skip-devtools</span>
         </div>
 
-        <div class="feature checked" data-flag="--skip-operations" onclick="toggleFeature(this)">
-          <div class="feature-checkbox"></div>
-          <div class="feature-info">
-            <span class="feature-name">Operations</span>
-            <span class="feature-desc">Business logic framework — ApplicationOperation + Result</span>
+        <div class="ops-group">
+          <div class="feature checked" data-flag="--skip-operations" onclick="toggleFeature(this)">
+            <div class="feature-checkbox"></div>
+            <div class="feature-info">
+              <span class="feature-name">Operations</span>
+              <span class="feature-desc">Business logic framework — ApplicationOperation + Result</span>
+            </div>
+            <span class="feature-flag">--skip-operations</span>
           </div>
-          <span class="feature-flag">--skip-operations</span>
-        </div>
 
-        <div class="modules" id="opsModules">
-          <div class="module checked" data-module="policies" onclick="toggleModule(event, this)">
-            <div class="feature-checkbox"></div>
-            <span class="feature-name">Policy</span>
-            <span class="feature-desc">— ApplicationPolicy base class</span>
-          </div>
-          <div class="module checked" data-module="validators" onclick="toggleModule(event, this)">
-            <div class="feature-checkbox"></div>
-            <span class="feature-name">Validator</span>
-            <span class="feature-desc">— ApplicationValidator base class</span>
-          </div>
-          <div class="module checked" data-module="queries" onclick="toggleModule(event, this)">
-            <div class="feature-checkbox"></div>
-            <span class="feature-name">Query</span>
-            <span class="feature-desc">— ApplicationQuery base class</span>
-          </div>
-          <div class="module checked" data-module="gateways" onclick="toggleModule(event, this)">
-            <div class="feature-checkbox"></div>
-            <span class="feature-name">Gateway</span>
-            <span class="feature-desc">— ApplicationGateway base class</span>
+          <div class="ops-modules" id="opsModulesSection">
+            <span class="modules-label">add-on modules · <code>--operations-include</code></span>
+            <div class="modules" id="opsModules">
+              <div class="module checked" data-module="policies" onclick="toggleModule(event, this)">
+                <div class="feature-checkbox"></div>
+                <span class="feature-name">Policy</span>
+                <span class="feature-desc">ApplicationPolicy</span>
+              </div>
+              <div class="module checked" data-module="validators" onclick="toggleModule(event, this)">
+                <div class="feature-checkbox"></div>
+                <span class="feature-name">Validator</span>
+                <span class="feature-desc">ApplicationValidator</span>
+              </div>
+              <div class="module checked" data-module="queries" onclick="toggleModule(event, this)">
+                <div class="feature-checkbox"></div>
+                <span class="feature-name">Query</span>
+                <span class="feature-desc">ApplicationQuery</span>
+              </div>
+              <div class="module checked" data-module="gateways" onclick="toggleModule(event, this)">
+                <div class="feature-checkbox"></div>
+                <span class="feature-name">Gateway</span>
+                <span class="feature-desc">ApplicationGateway</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -730,9 +789,9 @@
 
       function syncModulesState() {
         const ops = document.querySelector('.feature[data-flag="--skip-operations"]');
-        const modules = document.getElementById('opsModules');
-        if (!ops || !modules) return;
-        modules.classList.toggle('disabled', !ops.classList.contains('checked'));
+        const section = document.getElementById('opsModulesSection');
+        if (!ops || !section) return;
+        section.classList.toggle('disabled', !ops.classList.contains('checked'));
       }
 
       function toggleFeature(el) {
