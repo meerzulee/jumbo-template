@@ -29,10 +29,10 @@ FEATURE_GROUPS = {
     desc: 'RuboCop + Annotaterb + Zellij + Letter Opener',
     skip_flag: '--skip-devtools'
   },
-  trailblazer: {
-    name: 'Trailblazer',
-    desc: 'Business logic organization framework',
-    skip_flag: '--skip-trailblazer'
+  operations: {
+    name: 'Operations',
+    desc: 'Business logic framework (ApplicationOperation + Result)',
+    skip_flag: '--skip-operations'
   }
 }.freeze
 
@@ -87,7 +87,7 @@ def select_features
     say '  rails new myapp -m template.rb                    # All features (default)'
     say '  rails new myapp -m template.rb -i                 # Interactive mode'
     say '  rails new myapp -m template.rb --skip-auth        # All except auth'
-    say '  rails new myapp -m template.rb --skip-inertia --skip-trailblazer'
+    say '  rails new myapp -m template.rb --skip-inertia --skip-operations'
     say ''
     return FEATURE_GROUPS.keys.each_with_object({}) { |k, h| h[k] = false }
   end
@@ -135,9 +135,6 @@ def add_gems
     gem 'js-routes'
     gem 'local_time'
   end
-
-  # Trailblazer group
-  gem 'trailblazer-rails' if @features[:trailblazer]
 
   # Authentication group
   gem 'authentication-zero' if @features[:auth]
@@ -207,6 +204,18 @@ def setup_shadcn
   say 'Installing shadcn/ui...', :blue
   run 'bunx shadcn@latest init --defaults --yes'
   say 'shadcn/ui installed', :green
+end
+
+def setup_operations
+  say 'Setting up Operations framework...', :blue
+
+  empty_directory 'app/core'
+  fetch_file 'core/application_operation.rb', 'app/core/application_operation.rb'
+  fetch_file 'core/result.rb', 'app/core/result.rb'
+
+  say 'Operations framework installed:', :green
+  say '  • app/core/application_operation.rb'
+  say '  • app/core/result.rb'
 end
 
 def setup_annotaterb
@@ -567,10 +576,12 @@ def create_staging_environment
 end
 
 def configure_application
-  say 'Configuring application with UUID primary keys...', :blue
+  say 'Configuring application...', :blue
+
+  autoload_line = @features[:operations] ? "    config.autoload_paths += %W[\#{config.root}/app/core]\n\n" : ''
 
   inject_into_file 'config/application.rb', after: "class Application < Rails::Application\n" do
-    <<-RUBY
+    autoload_line + <<-RUBY
     config.generators do |g|
       g.orm :active_record, primary_key_type: :uuid
     end
@@ -578,7 +589,7 @@ def configure_application
     RUBY
   end
 
-  say 'Application configured with UUID primary keys', :green
+  say 'Application configured', :green
 end
 
 def setup_credentials
@@ -656,6 +667,9 @@ def main
       setup_database_simple
     end
 
+    # Operations group
+    setup_operations if @features[:operations]
+
     # Developer Tools group
     if @features[:devtools]
       copy_rubocop_config
@@ -685,7 +699,7 @@ def main
 
       say '  • Developer Tools: RuboCop, Annotaterb, Zellij, Letter Opener' if @features[:devtools]
 
-      say '  • Trailblazer: Business logic framework' if @features[:trailblazer]
+      say '  • Operations: Business logic framework (ApplicationOperation + Result)' if @features[:operations]
 
       say
     else

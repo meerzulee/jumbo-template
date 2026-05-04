@@ -24,7 +24,7 @@ The template includes 5 optional feature groups. By default, all features are in
 | **Multi-staging** | Kamal + Docker + multi-DB + staging/production | `--skip-multistaging` |
 | **Authentication** | authentication-zero gem | `--skip-auth` |
 | **Developer Tools** | RuboCop + Annotaterb + Zellij + Letter Opener | `--skip-devtools` |
-| **Trailblazer** | Business logic organization framework | `--skip-trailblazer` |
+| **Operations** | Business logic framework (ApplicationOperation + Result) | `--skip-operations` |
 
 ### Usage Examples
 
@@ -39,7 +39,7 @@ rails new myapp --skip-js -d=postgresql -m=https://rails.mrz.sh/t -y
 rails new myapp --skip-js -d=postgresql -m=https://rails.mrz.sh/t --skip-auth
 
 # Skip multiple features
-rails new myapp --skip-js -d=postgresql -m=https://rails.mrz.sh/t --skip-auth --skip-trailblazer
+rails new myapp --skip-js -d=postgresql -m=https://rails.mrz.sh/t --skip-auth --skip-operations
 
 # With curl installer
 curl -fsSL rails.mrz.sh | sh -s myapp --skip-inertia --skip-devtools
