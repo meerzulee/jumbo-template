@@ -2,6 +2,9 @@
 #
 # claude - Claude Code session launcher for Rails projects
 #
+# Resumes the most recent session for this project, or starts a fresh one
+# if no session exists yet (first run on a new app).
+#
 # Usage: bin/claude
 #
 set -euo pipefail
@@ -13,4 +16,14 @@ PROJECT_NAME="$(basename "$PROJECT_ROOT")"
 command -v claude >/dev/null 2>&1 || { echo "Error: claude is not installed" >&2; exit 127; }
 
 cd "$PROJECT_ROOT"
-exec claude --continue --name "$PROJECT_NAME" --dangerously-skip-permissions
+
+# Claude Code stores per-project state under ~/.claude/projects/<encoded-cwd>/
+# where each '/' in the absolute cwd is replaced with '-'. If that directory
+# doesn't exist or is empty, --continue would fail — start a new session.
+SESSION_DIR="$HOME/.claude/projects/${PROJECT_ROOT//\//-}"
+
+if [ -d "$SESSION_DIR" ] && [ -n "$(ls -A "$SESSION_DIR" 2>/dev/null)" ]; then
+  exec claude --continue --name "$PROJECT_NAME" --dangerously-skip-permissions
+else
+  exec claude --name "$PROJECT_NAME" --dangerously-skip-permissions
+fi
