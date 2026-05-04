@@ -9,6 +9,10 @@ layout {
     }
   }
 
+  tab name="coder" {
+    pane command="bin/claude"
+  }
+
   tab name="editor" focus=true {
     pane name="nvim" command="nvim" {
       args "."

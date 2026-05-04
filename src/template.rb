@@ -324,6 +324,8 @@ def setup_zellij
   fetch_directory '.zellij', '.zellij', ['layout.kdl']
   fetch_file 'bin/ze', 'bin/ze', force: true
   chmod 'bin/ze', 0o755
+  fetch_file 'bin/claude', 'bin/claude', force: true
+  chmod 'bin/claude', 0o755
 end
 
 def setup_bin_scripts
