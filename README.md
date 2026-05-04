@@ -26,6 +26,25 @@ The template includes 5 optional feature groups. By default, all features are in
 | **Developer Tools** | RuboCop + Annotaterb + Zellij + Letter Opener | `--skip-devtools` |
 | **Operations** | Business logic framework (ApplicationOperation + Result) | `--skip-operations` |
 
+#### Operations add-on modules
+
+When Operations is enabled, four optional base classes can be installed via `--operations-include`. The default is **all** modules.
+
+| Module | Installs | Directory |
+|--------|----------|-----------|
+| `policies` | `ApplicationPolicy` | `app/policies/` |
+| `validators` | `ApplicationValidator` | `app/validators/` |
+| `queries` | `ApplicationQuery` | `app/queries/` |
+| `gateways` | `ApplicationGateway` | `app/gateways/` |
+
+```bash
+# Only Operation + Result + Policy + Gateway
+rails new myapp ... --operations-include=policies,gateways
+
+# Just the core (Operation + Result), no add-ons
+rails new myapp ... --operations-include=
+```
+
 ### Usage Examples
 
 ```bash
@@ -40,6 +59,9 @@ rails new myapp --skip-js -d=postgresql -m=https://rails.mrz.sh/t --skip-auth
 
 # Skip multiple features
 rails new myapp --skip-js -d=postgresql -m=https://rails.mrz.sh/t --skip-auth --skip-operations
+
+# Pick a subset of Operation modules
+rails new myapp --skip-js -d=postgresql -m=https://rails.mrz.sh/t --operations-include=policies,gateways
 
 # With curl installer
 curl -fsSL rails.mrz.sh | sh -s myapp --skip-inertia --skip-devtools

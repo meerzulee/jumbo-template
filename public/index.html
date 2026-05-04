@@ -472,6 +472,58 @@
         opacity: 0.8;
       }
 
+      /* Sub-modules under Operations */
+      .modules {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+        margin: -0.3rem 0 0 1.75rem;
+      }
+
+      .module {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.7rem;
+        color: var(--text-muted);
+        background: var(--bg-surface);
+        border: 1px solid var(--border);
+        padding: 0.4rem 0.8rem;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s;
+        user-select: none;
+      }
+
+      .module .feature-checkbox {
+        width: 12px;
+        height: 12px;
+      }
+
+      .module .feature-checkbox::after {
+        font-size: 8px;
+      }
+
+      .module.checked {
+        border-color: var(--terminal-green);
+        color: var(--text-primary);
+      }
+
+      .module.checked .feature-checkbox {
+        background: var(--terminal-green);
+        border-color: var(--terminal-green);
+      }
+
+      .module.checked .feature-checkbox::after {
+        opacity: 1;
+      }
+
+      .modules.disabled {
+        opacity: 0.35;
+        pointer-events: none;
+      }
+
       /* Footer */
       .footer {
         font-size: 0.85rem;
@@ -615,15 +667,39 @@
           <div class="feature-checkbox"></div>
           <div class="feature-info">
             <span class="feature-name">Operations</span>
-            <span class="feature-desc">Business logic framework (ApplicationOperation + Result)</span>
+            <span class="feature-desc">Business logic framework — ApplicationOperation + Result</span>
           </div>
           <span class="feature-flag">--skip-operations</span>
+        </div>
+
+        <div class="modules" id="opsModules">
+          <div class="module checked" data-module="policies" onclick="toggleModule(event, this)">
+            <div class="feature-checkbox"></div>
+            <span class="feature-name">Policy</span>
+            <span class="feature-desc">— ApplicationPolicy base class</span>
+          </div>
+          <div class="module checked" data-module="validators" onclick="toggleModule(event, this)">
+            <div class="feature-checkbox"></div>
+            <span class="feature-name">Validator</span>
+            <span class="feature-desc">— ApplicationValidator base class</span>
+          </div>
+          <div class="module checked" data-module="queries" onclick="toggleModule(event, this)">
+            <div class="feature-checkbox"></div>
+            <span class="feature-name">Query</span>
+            <span class="feature-desc">— ApplicationQuery base class</span>
+          </div>
+          <div class="module checked" data-module="gateways" onclick="toggleModule(event, this)">
+            <div class="feature-checkbox"></div>
+            <span class="feature-name">Gateway</span>
+            <span class="feature-desc">— ApplicationGateway base class</span>
+          </div>
         </div>
       </div>
 
       <div class="footer">
-        <span>v0.1.0</span> &middot;
-        <a href="https://github.com/meerzulee/jumbo-template">GitHub</a>
+        <span>v0.2.0</span> &middot;
+        <a href="https://github.com/meerzulee/jumbo-template">GitHub</a> &middot;
+        <a href="https://github.com/meerzulee/jumbo-template/blob/master/CHANGELOG.md">Changelog</a>
       </div>
     </div>
 
@@ -633,10 +709,40 @@
         document.querySelectorAll('.feature:not(.checked)').forEach(el => {
           flags.push(el.dataset.flag);
         });
+        const includeFlag = getOperationsIncludeFlag();
+        if (includeFlag) flags.push(includeFlag);
         return flags;
       }
 
+      function getOperationsIncludeFlag() {
+        const ops = document.querySelector('.feature[data-flag="--skip-operations"]');
+        if (!ops || !ops.classList.contains('checked')) return null;
+
+        const all = ['policies', 'validators', 'queries', 'gateways'];
+        const checked = [];
+        document.querySelectorAll('#opsModules .module').forEach(el => {
+          if (el.classList.contains('checked')) checked.push(el.dataset.module);
+        });
+
+        if (checked.length === all.length) return null;
+        return `--operations-include=${checked.join(',')}`;
+      }
+
+      function syncModulesState() {
+        const ops = document.querySelector('.feature[data-flag="--skip-operations"]');
+        const modules = document.getElementById('opsModules');
+        if (!ops || !modules) return;
+        modules.classList.toggle('disabled', !ops.classList.contains('checked'));
+      }
+
       function toggleFeature(el) {
+        el.classList.toggle('checked');
+        syncModulesState();
+        updateCommands();
+      }
+
+      function toggleModule(event, el) {
+        event.stopPropagation();
         el.classList.toggle('checked');
         updateCommands();
       }
@@ -695,6 +801,7 @@
       // Auto-focus on page load
       window.addEventListener("load", function () {
         document.getElementById("projectName").focus();
+        syncModulesState();
       });
     </script>
   </body>

@@ -2,7 +2,7 @@
 # Usage (local):  rails new {project_name} --database=postgresql --skip-javascript -m t
 # Usage (remote): rails new {project_name} --database=postgresql --skip-javascript -m https://rails.mrz.sh/t
 
-JUMBO_VERSION = '0.1.0'
+JUMBO_VERSION = '0.2.0'
 
 REMOTE_ROOT = 'https://rails.mrz.sh/template'
 LOCAL_ROOT = File.join(__dir__, 'template')
@@ -36,6 +36,16 @@ FEATURE_GROUPS = {
   }
 }.freeze
 
+# Optional add-on modules for the Operations feature.
+# Each maps to an Application{X} base class copied into app/{module}/.
+OPERATION_MODULES = {
+  policies:   { singular: 'policy',    klass: 'ApplicationPolicy' },
+  validators: { singular: 'validator', klass: 'ApplicationValidator' },
+  queries:    { singular: 'query',     klass: 'ApplicationQuery' },
+  gateways:   { singular: 'gateway',   klass: 'ApplicationGateway' }
+}.freeze
+AVAILABLE_OPERATION_MODULES = OPERATION_MODULES.keys.freeze
+
 # Parse command-line options
 def parse_options
   skip_flags = FEATURE_GROUPS.keys.each_with_object({}) do |key, hash|
@@ -46,6 +56,17 @@ def parse_options
     interactive: ARGV.include?('-i') || ARGV.include?('--interactive'),
     skip: skip_flags
   }
+end
+
+# Parse `--operations-include=policies,gateways,...`. Returns the requested
+# subset of AVAILABLE_OPERATION_MODULES, or all of them when the flag is absent.
+def parse_operation_modules
+  flag = ARGV.find { |a| a.start_with?('--operations-include=') }
+  return AVAILABLE_OPERATION_MODULES.dup if flag.nil?
+
+  flag.sub('--operations-include=', '')
+      .split(',').map { |s| s.strip.to_sym }
+      .select { |m| AVAILABLE_OPERATION_MODULES.include?(m) }
 end
 
 def remote?
@@ -83,11 +104,14 @@ def select_features
     FEATURE_GROUPS.each do |_key, info|
       say "  #{info[:skip_flag].ljust(22)} Skip #{info[:name]}"
     end
+    say "  --operations-include=  Comma-separated subset of " \
+        "#{AVAILABLE_OPERATION_MODULES.join(',')} (default: all)"
     say "\nExamples:"
     say '  rails new myapp -m template.rb                    # All features (default)'
     say '  rails new myapp -m template.rb -i                 # Interactive mode'
     say '  rails new myapp -m template.rb --skip-auth        # All except auth'
     say '  rails new myapp -m template.rb --skip-inertia --skip-operations'
+    say '  rails new myapp -m template.rb --operations-include=policies,gateways'
     say ''
     return FEATURE_GROUPS.keys.each_with_object({}) { |k, h| h[k] = false }
   end
@@ -213,9 +237,19 @@ def setup_operations
   fetch_file 'core/application_operation.rb', 'app/core/application_operation.rb'
   fetch_file 'core/result.rb', 'app/core/result.rb'
 
-  say 'Operations framework installed:', :green
-  say '  • app/core/application_operation.rb'
-  say '  • app/core/result.rb'
+  installed = ['ApplicationOperation', 'Result']
+
+  @operation_modules.each do |mod|
+    info  = OPERATION_MODULES[mod]
+    dir   = "app/#{mod}"
+    file  = "application_#{info[:singular]}.rb"
+
+    empty_directory dir
+    fetch_file "#{mod}/#{file}", "#{dir}/#{file}"
+    installed << info[:klass]
+  end
+
+  say "Operations framework installed: #{installed.join(', ')}", :green
 end
 
 def setup_annotaterb
@@ -580,7 +614,19 @@ end
 def configure_application
   say 'Configuring application...', :blue
 
-  autoload_line = @features[:operations] ? "    config.autoload_paths += %W[\#{config.root}/app/core]\n\n" : ''
+  autoload_dirs = []
+  if @features[:operations]
+    autoload_dirs << 'core'
+    autoload_dirs.concat(@operation_modules.map(&:to_s))
+  end
+
+  autoload_line =
+    if autoload_dirs.any?
+      paths = autoload_dirs.map { |d| "\#{config.root}/app/#{d}" }.join(' ')
+      "    config.autoload_paths += %W[#{paths}]\n\n"
+    else
+      ''
+    end
 
   inject_into_file 'config/application.rb', after: "class Application < Rails::Application\n" do
     autoload_line + <<-RUBY
@@ -642,6 +688,7 @@ end
 
 def main
   @features = select_features
+  @operation_modules = @features[:operations] ? parse_operation_modules : []
   add_gems
 
   after_bundle do
@@ -701,7 +748,10 @@ def main
 
       say '  • Developer Tools: RuboCop, Annotaterb, Zellij, Letter Opener' if @features[:devtools]
 
-      say '  • Operations: Business logic framework (ApplicationOperation + Result)' if @features[:operations]
+      if @features[:operations]
+        modules_str = @operation_modules.any? ? " + #{@operation_modules.join(', ')}" : ''
+        say "  • Operations: ApplicationOperation + Result#{modules_str}"
+      end
 
       say
     else
